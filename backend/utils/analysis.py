@@ -3,8 +3,15 @@ import csv
 
 
 if __name__ == "__main__":
-    data = json.load(open("call_2k/scores.json", "r", encoding="utf-8"))
-    out = open("call_2k/score_analysis.csv", "w", encoding="utf-8", newline="")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('dataaddr', type=str, help='the addr of json of data')
+    parser.add_argument('outaddr', type=str, help='the addr of csv of output')
+    args = parser.parse_args()
+
+   # data = json.load(open("call_2k/scores.json", "r", encoding="utf-8"))
+    data = json.load(open(args.dataaddr, "r", encoding="utf-8"))
+   # out = open("call_2k/score_analysis.csv", "w", encoding="utf-8", newline="")
+    out = open(args.outaddr, "w", encoding="utf-8", newline="")
     writer = csv.writer(out)
     header = [
         "id", "text", "words_number", "phones_number", "vowel", "consonant",
