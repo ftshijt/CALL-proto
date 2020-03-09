@@ -37,11 +37,27 @@ def cal_fluency(result_dict, ar):
 
 
 if __name__ == "__main__":
-    aligned_result = json.load(open("call_2k/aligned/aligned_result_0.json", "r", encoding="utf-8"))
-    text = json.load(open("call_2k/text/text.json", "r", encoding="utf-8"))
-    probs = json.load(open("call_2k/feature/feature_0.json", "r", encoding="utf-8"))
-    phones = json.load(open("phones.json", "r", encoding="utf-8"))
-    tphones = json.load(open("call_2k/text/text2phone.json", "r", encoding="utf-8"))
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('resaddr', type=str, help='the addr of json of aligned_result')
+    parser.add_argument('textaddr', type=str, help='the addr of json of text')
+    parser.add_argument('probsaddr', type=str, help='the addr of json of probs')
+    parser.add_argument('phonesaddr', type=str, help='the addr of json of phones')
+    parser.add_argument('tphonesaddr', type=str, help='the addr of json of tphones')
+    parser.add_argument('outputsaddr', type=str, help='the addr of json of outputs')
+    args = parser.parse_args()
+
+   # aligned_result = json.load(open("call_2k/aligned/aligned_result_0.json", "r", encoding="utf-8"))
+   # text = json.load(open("call_2k/text/text.json", "r", encoding="utf-8"))
+   # probs = json.load(open("call_2k/feature/feature_0.json", "r", encoding="utf-8"))
+   # phones = json.load(open("phones.json", "r", encoding="utf-8"))
+   # tphones = json.load(open("call_2k/text/text2phone.json", "r", encoding="utf-8"))
+
+    aligned_result = json.load(open(args.resaddr, "r", encoding="utf-8"))
+    text = json.load(open(args.textaddr, "r", encoding="utf-8"))
+    probs = json.load(open(args.probsaddr, "r", encoding="utf-8"))
+    phones = json.load(open(args.phonesaddr, "r", encoding="utf-8"))
+    tphones = json.load(open(args.tphonesaddr, "r", encoding="utf-8"))
     reverse_phone = {}
     for key in phones.keys():
         reverse_phone[phones[key]] = key
@@ -141,4 +157,5 @@ if __name__ == "__main__":
         json.dump(result_dict, open("score/%s.json" % key, "w", encoding="utf-8"))
         output[key] = result_dict
     print(output)
-    json.dump(output, open("call_2k/scores.json", "w", encoding="utf-8"))
+   # json.dump(output, open("call_2k/scores.json", "w", encoding="utf-8"))
+    json.dump(output, open(args.outputsaddr, "w", encoding="utf-8"))

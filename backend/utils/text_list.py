@@ -3,10 +3,11 @@ import re
 import csv
 
 
-def load_text():
+def load_text(args):
     text_dict = {}
     # un_text = open("un_text", "r", encoding="utf-8")
-    un_text = open("call_2k/text/text", "r", encoding="utf-8")
+    # un_text = open("call_2k/text/text", "r", encoding="utf-8")
+    un_text = open(args.txtaddr, "r", encoding="utf-8")
 
     while True:
         line = un_text.readline()
@@ -16,14 +17,17 @@ def load_text():
         id = line.split(" ")[0]
         text = line[len(id) + 1 :]
         text_dict[id] = text
-    json.dump(text_dict, open("call_2k/text/text.json", "w", encoding="utf-8"))
+   # json.dump(text_dict, open("call_2k/text/text.json", "w", encoding="utf-8"))
+    json.dump(text_dict, open(args.txjaddr, "w", encoding="utf-8"))
     return text_dict
 
 
-def word2phone():
-    w2p_file = open("lexicon.txt", "r", encoding="utf-8")
+def word2phone(args):
+   # w2p_file = open("lexicon.txt", "r", encoding="utf-8")
+    w2p_file = open(args.lexiconaddr, "r", encoding="utf-8")
     w2p_dict = {}
-    phone_file = open("phones.txt", "r", encoding="utf-8")
+   # phone_file = open("phones.txt", "r", encoding="utf-8")
+    phone_file = open(args.phonesaddr, "r", encoding="utf-8")
     phone_dict = {}
     reader = csv.reader(phone_file, delimiter=" ")
     for line in reader:
@@ -65,7 +69,16 @@ def text2phone(text, w2p):
 
 
 if __name__ == "__main__":
-    text = load_text()
-    w2p = word2phone()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('txjaddr', type=str, help='the addr of json of text')
+    parser.add_argument('txtaddr', type=str, help='the addr of text')
+    parser.add_argument('lexiconaddr', type=str, help='the addr of txt of lexicon')
+    parser.add_argument('phonesaddr', type=str, help='the addr of txt of phones')
+    parser.add_argument('outaddr', type=str, help='the addr of json of outputs')
+    args = parser.parse_args()
+
+    text = load_text(args)
+    w2p = word2phone(args)
     t2p = text2phone(text, w2p)
-    json.dump(t2p, open("call_2k/text/text2phone.json", "w", encoding="utf-8"))
+   # json.dump(t2p, open("call_2k/text/text2phone.json", "w", encoding="utf-8"))
+    json.dump(t2p, open(args.outaddr, "w", encoding="utf-8"))

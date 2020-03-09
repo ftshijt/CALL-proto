@@ -1,9 +1,10 @@
 import json
 import numpy as np
 import math
+import argparse
 
 
-phone_size = 86
+#phone_size = 86  # Seems no longer used - by Nan HUO
 
 
 # dp with optional silence
@@ -112,13 +113,22 @@ def dp(post_probs, template):
 
 
 if __name__ ==  "__main__":
+
     # feature = json.load(open("feature.json", "r", encoding="utf-8"))
-    t2p = json.load(open("call_2k/text/text2phone.json", "r", encoding="utf-8"))
+    parser = argparse.ArgumentParser()
+    parser.add_argument('t2paddr', type=str, help='the addr of json of t2p')
+    parser.add_argument('feataddr', type=str, help='the addr of json of feature')
+    parser.add_argument('resaddr', type=str, help='the addr of json of result')
+    args = parser.parse_args()
+
+    #t2p = json.load(open("call_2k/text/text2phone.json", "r", encoding="utf-8"))
+    t2p = json.load(open(args.t2paddr, "r", encoding="utf-8"))
     count = 0
     for i in range(31):
         print(i)
         aligned_result = {}
-        feature = json.load(open("call_2k/feature/feature_%d.json"%i, "r", encoding="utf-8"))
+        #feature = json.load(open("call_2k/feature/feature_%d.json"%i, "r", encoding="utf-8"))
+        feature = json.load(open("%s/feature_%d.json" %(args.feataddr, i), "r", encoding="utf-8"))
         for key in feature.keys():
             try:
                 # error processing for 33_03_00010
@@ -132,8 +142,8 @@ if __name__ ==  "__main__":
             if count % 1000 == 0:
                 print(count)
             # print(key)
-        json.dump(aligned_result, open("call_2k/aligned/aligned_result_%d.json"%i, "w", encoding="utf-8"))
-
+        #json.dump(aligned_result, open("call_2k/aligned/aligned_result_%d.json"%i, "w", encoding="utf-8"))
+        json.dump(aligned_result, open("%s/aligned_result_%d.json"%(args.resaddr,i), "w", encoding="utf-8"))
 
     aligned_result = {}
     # for key in feature:
