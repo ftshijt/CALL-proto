@@ -9,7 +9,6 @@ import argparse
 class Score():
     def __init__(self, args):
         self.phone_dict, self.w2p = self.word2phone(args)
-       # self.phone_dict = self.load_phone(args)
         self.sr = args.sr
         # ...
 
@@ -19,10 +18,8 @@ class Score():
         return text.strip().upper()
 
     def word2phone(self, args):
-        # w2p_file = open("lexicon.txt", "r", encoding="utf-8")
         w2p_file = open(args.lexiconaddr, "r", encoding="latin-1")
         w2p_dict = {}
-       # phone_file = open("phones.txt", "r", encoding="utf-8")
         phone_file = open(args.phonesaddr, "r", encoding="utf-8")
         phone_dict = {}
         reader = csv.reader(phone_file, delimiter=" ")
@@ -51,9 +48,8 @@ class Score():
 
 
     def text2phone(self, text):
-        #TODO
         text = self.cleantext(text)
-        phone_list = [1]     ###### why？？？
+        phone_list = [1]
         words = text.split(" ")
         try:
             for word in words:
@@ -73,12 +69,12 @@ class Score():
     def dp_optional_silence(self, post_probs, template):
         # i phone in template; j feats position
         # dp[i, j] = max(dp[i, j-1], dp[i-1, j-1], dp[i-2, j-1])
-        feats_size = len(post_probs) ### frame size
+        feats_size = len(post_probs) # frame size
         probs = np.array(post_probs)
         loss = np.zeros((len(template), feats_size))
         path = np.zeros((len(template), feats_size))
 
-        for i in range(len(template)):   #### 看不懂？？？
+        for i in range(len(template)):
             loss[0][i] = probs[0][template[i] - 1]
 
         # measure the silence phone encountered
