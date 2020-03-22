@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body  {
+
+  background-color: #cccccc;
+}
+
+
+.button {
+  background-color: #0020C2;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 25px;
+}
+
+
+.button5 {font-size: 24px;}
+</style>
+</head>
+<body>
+<center>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+<form method="post">
+    {% csrf_token %}
+<input type="hidden" name="record">
+<button class="button button5">Record</button>
+</form>
+<br/>
+<br/>
+<br/>
+    <h1 style="color:red;"> {{data}}</h1>
+    </center>
+</body>
+</html>
