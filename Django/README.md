@@ -11,7 +11,7 @@ The project is made from tutorial so the frontend functionalities do not exactly
 Runs on latest version of python (python3) and need pip to install needed packages so make sure that you have them on your machine
 
 `cd Django/django_project` \
-`source env/bin/activate` to start the virtual environment, make sure to do this before running the server \
+`source env/bin/activate` to start the virtual environment, make sure to do this before running the server
 
 Necessary packages and libraries to install before running server for the first time if you do not already have them:
 `pip install django`\
@@ -22,9 +22,10 @@ Necessary packages and libraries to install before running server for the first 
 Then inside Django/django_project folder, run \
 `python manage.py runserver`\
 
-After development server started with no errors, open a browser and use address `localhost:8000/blog` to go to the main page \
+After development server started with no errors, open a browser and use address `localhost:8000/blog` to go to the main page
+This route will also be changed later
 
-This route will also be changed later \
+
 Other routes to note are: \
 `localhost:8000/blog/audio` - speech recognition page, press Record to start recording your audio and the red text on the screen will update \
 `localhost:8000/blog/about`- temporary page that has no function, will modify later \
