@@ -17,10 +17,10 @@ Necessary packages and libraries to install before running server for the first 
 `pip install django`\
 `pip install SpeechRecognition`\
 `brew install portaudio`\
-`pip install pyaudio`\
+`pip install pyaudio`
 
 Then inside Django/django_project folder, run \
-`python manage.py runserver`\
+`python manage.py runserver`
 
 After development server started with no errors, open a browser and use address `localhost:8000/blog` to go to the main page
 This route will also be changed later
@@ -28,4 +28,4 @@ This route will also be changed later
 
 Other routes to note are: \
 `localhost:8000/blog/audio` - speech recognition page, press Record to start recording your audio and the red text on the screen will update \
-`localhost:8000/blog/about`- temporary page that has no function, will modify later \
+`localhost:8000/blog/about`- temporary page that has no function, will modify later
