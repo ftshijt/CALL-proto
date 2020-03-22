@@ -11,6 +11,7 @@ The project is made from tutorial so the frontend functionalities do not exactly
 Runs on latest version of python (python3) and need pip to install needed packages so make sure that you have them on your machine
 
 `cd Django/django_project` \
+ Install python3 virtual environment package first if you dont already have it, and then use command `python3 -m venv env` \
 `source env/bin/activate` to start the virtual environment, make sure to do this before running the server \
 
 Necessary packages and libraries to install before running server for the first time if you do not already have them:
