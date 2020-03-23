@@ -38,6 +38,17 @@ def audio(request):
         audio = r.listen(source)
 
     try:
+        print(dir(audio))
+        print(audio.sample_rate)   
+        print(audio.sample_width) 
+        with open("microphone-results.wav", "wb") as f:
+            f.write(audio.get_wav_data())  
+        from scipy.io.wavfile import read
+        import numpy as np
+        a = read("microphone-results.wav") 
+        audio_arr = np.array(a[1],dtype=float)
+        print(audio_arr)
+
         output = " " + r.recognize_google(audio)
     except sr.UnknownValueError:
         output = "Could not understand audio"
