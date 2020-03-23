@@ -44,6 +44,15 @@ Necessary packages and libraries to install before running server for the first 
 `brew install portaudio`\
 `pip install pyaudio`\
 
+Followings are my sample environment (as of Mar 2020) :
+python version: 3.7.6 (default, Mar 2020)  [GCC 7.3.0] \
+django version: 3.0.4 \
+speechrecognition version: 2.1.3 \
+portaudio version: V19 \
+pyaudio version: 0.2.11
+
+## Runnning the Development Server
+
 Then inside Django/django_project folder, run \
 `python manage.py runserver`\
 
