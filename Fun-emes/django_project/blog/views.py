@@ -17,6 +17,9 @@ posts = [
     }
 ]
 
+def launch(request):
+    return render(request, 'blog/launch.html')
+
 def home(request):
     context = {
         'posts': posts
@@ -24,8 +27,8 @@ def home(request):
     return render(request, 'blog/home.html', context)
 
 
-def about(request):
-    return render(request, 'blog/about.html', {'title': 'About'})
+def own_sentence(request):
+    return render(request, 'blog/own_sentence.html', {'title': 'Make Your Own Sentence'})
 
 def audio(request):
     data = request.POST.get('record')
