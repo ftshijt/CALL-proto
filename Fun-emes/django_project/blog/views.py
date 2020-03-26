@@ -28,7 +28,10 @@ def home(request):
 
 
 def own_sentence(request):
-    return render(request, 'blog/own_sentence.html', {'title': 'Make Your Own Sentence'})
+    return render(request, 'blog/own_sentence.html', {'title': 'Use Your Own Sentence'})
+
+def given_sentence(request):
+    return render(request, 'blog/given_sentence.html', {'title': 'Say This Sentence'})
 
 def audio(request):
     data = request.POST.get('record')
