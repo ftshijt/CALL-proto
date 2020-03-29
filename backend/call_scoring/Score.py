@@ -18,9 +18,7 @@ def PackZero(integer, size):
 
 class Score():
     def __init__(self, lexicon, phones, sr, kaldi_workspace, utt_id):
-        # self.phone_dict, self.w2p = self.Word2Phone(lexicon, phones)
-        # TODO position remove info
-        # self.phone_sum = self.PositionRemove(self.phone_dict, phones)
+        self.phone_dict, self.w2p = self.Word2Phone(lexicon, phones)
         self.sr = sr
         self.kaldi_workspace = kaldi_workspace
         self.utt_id = utt_id
@@ -38,12 +36,12 @@ class Score():
         w2p_dict = {}
         phone_file = open(phones, "r", encoding="utf-8")
         phone_dict = {}
-        reader = csv.reader(phones, delimiter=" ")
+        reader = csv.reader(phone_file, delimiter=" ")
         id_num = 0
         for line in reader:
             phone_dict[line[0]] = int(id_num)
             id_num += 1
-
+        print (phone_dict)
         while True:
             line = w2p_file.readline()
             if not line:
@@ -75,7 +73,7 @@ class Score():
             print(words)
             print(text)
         t2p = phone_list
-
+        print(t2p)
         return t2p
 
     def CreateTestEnv(self, audio, wav_id):
@@ -173,7 +171,9 @@ class Score():
                 template_position -= 2
                 align_results.append(template[template_position])
             feat_position -= 1
-
+        trmp_shw = align_results[::-1]
+        print(trmp_shw.index(44), trmp_shw.index(58))
+        print(trmp_shw)
         return align_results[::-1]
 
     def Align(self, post_probs, t2p):
@@ -199,7 +199,7 @@ class Score():
                 if prob[phone_id - 1] < 1e-8:
                     target_result.append(0)
                     continue
-                target_result.append(math.log(max(prob)) / math.log(prob[phone_id - 1]) * 100)
+                target_result.append(math.log(max(prob)) / math.log(prob[phone_id]) * 100)
         target_result = sorted(target_result)
         return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4)
 
@@ -302,6 +302,7 @@ class Score():
         result_dict["fluency"] = round(self.CalcFluency(result_dict, ar), 4)
         output = result_dict
         print(output)
+        return output
 
 
 if __name__ == "__main__":
@@ -309,12 +310,14 @@ if __name__ == "__main__":
     parser.add_argument('lexiconaddr', type=str, help='the addr of lexicon')
     parser.add_argument('phonesaddr', type=str, help='the addr of phones')
     parser.add_argument('sr', type=int, help='sr')
-    parser.add_argument('kaldi_workspace', type=int, help='kaldi_workspace')
+    parser.add_argument('kaldi_workspace', type=str, help='kaldi_workspace')
     parser.add_argument('utt_id', type=int, help='utt_id')
     args = parser.parse_args()
 
-    text = "how are you?"
-    audio = 0
-
-    Score_test = Score(args.lexiconaddr, args.phonesaddr, args.sr, kaldi_workspace, utt_id)
-    score_output, utt_id = Score_test.CalcScores(audio, text)
+    text = "hello, how are you doing?"
+    audio = '/home/nan/CALL-proto/Fun-emes/django_project/microphone-results.wav'
+    Score_test = Score(args.lexiconaddr, args.phonesaddr, args.sr, args.kaldi_workspace, args.utt_id)
+   # score_output, utt_id = Score_test.CalcScores(audio, text)
+    score_output = Score_test.CalcScores(audio, text)
+    wav_id = PackZero(args.utt_id, 6)
+    json.dump(score_output, open("/home/nan/CALL-proto/Fun-emes/django_project/score_wav%s.json"%wav_id, "w", encoding="utf-8"))
