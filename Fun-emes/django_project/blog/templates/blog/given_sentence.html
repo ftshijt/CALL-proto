@@ -1,82 +1,153 @@
 <!DOCTYPE html>
 {% extends "blog/base.html" %}
 {% block content%}
-<link rel="stylesheet" type="text/css" href="some_style.css">
 <style>
-div.center{
-  /* margin: 0 auto; */
-  position: absolute;
-  left:50%;
-  /* top: 50%; */
-}
-div.user {
-  position: relative;
-  left: 400px;
-  width:200px;
-}
-div.sound_btn {
-  position: relative;
-  left: 10px;
-  top: 50px;
-  width:200px;
-}
-
-div.user_input{
-  position: relative;
-  left: 20px;
-  top: 20px;
-  width:200px;
-}
-
-div.record_btn {
-  position: relative;
-  left: 100px;
-  top: 100px;
-  /* width:200px; */
-  /* border:5px solid #ee3e64; */
-}
-
-div.next{
-  position: relative;
-  left: 300px;
-  top: 150px;
-  /* width:100px; */
-}
-
-.next_btn {
-  transition-duration: 0.4s;
-}
-
-.next_btn:hover {
-  background-color: #4CAF50; /* Green */
+.dropbtn {
+  background-color: #3498DB;
   color: white;
+  width: 250px;
+  height: 40px;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
 }
 
+.sentence-btn {
+  background-color: #3498DB;
+  color: white;
+  width: 250px;
+  height: 40px;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+/* Create three equal columns that floats next to each other */
+.column {
+  float: left;
+  width: 33.33%;
+  padding: 10px;
+  height: 300px; /* Should be removed. Only for demonstration */
+}
+
+
+select {
+	width: 200px;
+}
 </style>
+<p>To gauge your environment and give you sentences like you will more likely encounter, please tell us your occupation: </p>
+<select id="environment">
+	<option value="None">-- Select --</option>
+	<option value="ID001">Elementary School</option>
+	<option value="ID002">Middle School</option>
+	<option value="ID003" selected>Highschool</option>
+	<option value="ID003">College</option>
+	<option value="ID003">Employed</option>
+	<option value="ID003">Unemployed</option>
+	<option value="ID003">Retired</option>
+</select>
+<br/>
+<br/>
+<p>And now, please tell us the scenario that you wish to prepare for: </p>
+<select id="environment">
+	<option value="None">-- Select --</option>
+	<option value="ID001" selected>Classroom (student)</option>
+	<option value="ID002">Classroom (teacher)</option>
+	<option value="ID003">Work (employee)</option>
+	<option value="ID003">Work (boss)</option>
+	<option value="ID003">Restaurant</option>
+	<option value="ID003">Hospital</option>
+	<option value="ID003">Social</option>
+</select>
 
-  <div class="center">
-    <div class="user">
-      <img src="../pics/user.png" alt="User">
-    </div>
+<script>
+	function GetSelectedValue(){
+		var e = document.getElementById("environment");
+		var result = e.options[e.selectedIndex].value;
+				
+		document.getElementById("result").innerHTML = result;
+	}
 
-    <h2>Repeat after me ...</h2>
-    <div class="sound_btn">
-      <button><img src="../pics/speaker1.png" /></button>
-    </div>
-    <div class="user_input">
-      <p>This is a sample sentence.</p>
-      <!-- <input type="text" name="test" size="15" maxlength="50" placeholder="This is a sample sentence"/> -->
-    </div>
+	function GetSelectedText(){
+		var e = document.getElementById("environment");
+		var result = e.options[e.selectedIndex].text;
+		
+		document.getElementById("result").innerHTML = result;
+	}
 
-    <div class="record_btn">
-      <button><img src="../pics/radio.png" /></button>
-    </div>
+	function GetSentence(){
+		fetch('http://example.com/movies.json')
+  		.then((response) => {
+    		return response.json();
+  		})
+  		.then((data) => {
+    		console.log(data);
+  		});
 
-    <div class="next">
-      <button class="next_btn">Next</button>
-    </div>
+		document.getElementById("duplicate").innerHTML = e;
+	}
 
+	function GetScore(){
+		
+
+		document.getElementById("duplicate").innerHTML = e;
+	}
+
+</script>
+
+<script src="score.js"></script>
+
+<br/>
+<br/>
+<br/>
+
+<form method="get">
+    {% csrf_token %}
+<input type="hidden" name="generate">
+<button class="sentence_btn" style="width:170px;height:30px;">Generate Sentence</button>
+</form>
+
+<br/>
+<br/>
+<br/>
+
+<p>Repeat After Me...</p>
+<textarea type="text" id="generated" name="generated" style="width:1000px;height:180px;" readonly>This is a sample sentence</textarea>
+<button class="listen_btn" style="width:170px;height:30px;">Listen To Sentence</button>
+
+<br/>
+<br/>
+
+<div class="row">
+  <div class="column">
+    <form method="post">
+    		{% csrf_token %}
+		<input type="hidden" name="record">
+		<button class="button button5" style="width:80px;height:30px">Record</button>
+		</form>
+		<h> {{data}}</h1>		
+		<br/>
+		<br/>		
+		<button class="play_btn" style="width:170px;height:30px;">Play Your Audio</button>
+		<br/>
+		<br/>
+		<button class="record_btn" style="width:170px;height:30px;">Record Again</button>		
+		<br/>
+		<br/>
   </div>
+  <div class="column">
+  </div>
+  <div class="column">
+    <button class="score_btn" onclick="GetSentence()" style="width:170px;height:30px;">Evaluate</button>		
+	<br/>
+	<p id="duplicate"></p>
+	<br/>
+	<h>{{score}}</h>
+  </div>
+</div>
+
 
 
 {% endblock content %}
