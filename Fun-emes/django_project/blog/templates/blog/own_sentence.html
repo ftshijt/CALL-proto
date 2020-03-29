@@ -1,9 +1,79 @@
 <!DOCTYPE html>
 {% extends "blog/base.html" %}
 {% block content%}
-  <img src="../../frontend/user.png" alt="User">
-  <h1>Use Your Own Sentence</h1>
-  <button><img src="../../frontend/speaker1.png" /></button>
-  <input type="text" name="test" size="15" maxlength="50" placeholder="This is a sample sentence"/>
-  <button><img src="../../frontend/radio.png" /></button>
+<link rel="stylesheet" type="text/css" href="some_style.css">
+<style>
+div.center{
+  /* margin: 0 auto; */
+  position: absolute;
+  left:50%;
+  /* top: 50%; */
+}
+div.user {
+  position: relative;
+  left: 400px;
+  width:200px;
+}
+div.sound_btn {
+  position: relative;
+  left: 10px;
+  top: 50px;
+  width:200px;
+}
+
+div.user_input{
+  position: relative;
+  left: 20px;
+  top: 20px;
+  width:200px;
+}
+
+div.record_btn {
+  position: relative;
+  left: 100px;
+  top: 100px;
+  /* width:200px; */
+  /* border:5px solid #ee3e64; */
+}
+
+div.next{
+  position: relative;
+  left: 300px;
+  top: 150px;
+  /* width:100px; */
+}
+
+.next_btn {
+  transition-duration: 0.4s;
+}
+
+.next_btn:hover {
+  background-color: #4CAF50; /* Green */
+  color: white;
+}
+
+</style>
+
+  <div class="center">
+    <div class="user">
+      <img src="../pics/user.png">
+    </div>
+
+    <h2>Use Your Own Sentence</h2>
+    <div class="sound_btn">
+      <button><img src="../pics/speaker1.png" /></button>
+    </div>
+    <div class="user_input">
+      <input type="text" name="test" size="15" maxlength="50" placeholder="This is a sample sentence"/>
+    </div>
+
+    <div class="record_btn">
+      <button><img src="../pics/radio.png" /></button>
+    </div>
+
+    <div class="next">
+      <button class="next_btn">Next</button>
+    </div>
+
+  </div>
 {% endblock content %}
