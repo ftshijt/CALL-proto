@@ -1,0 +1,48 @@
+div.center{
+  /* margin: 0 auto; */
+  position: absolute;
+  left:50%;
+  /* top: 50%; */
+}
+div.user {
+  position: relative;
+  left: 400px;
+  width:200px;
+}
+div.sound_btn {
+  position: relative;
+  left: 10px;
+  top: 50px;
+  width:200px;
+}
+
+div.user_input{
+  position: relative;
+  left: 20px;
+  top: 20px;
+  width:200px;
+}
+
+div.record_btn {
+  position: relative;
+  left: 100px;
+  top: 100px;
+  /* width:200px; */
+  border:5px solid #ee3e64;
+}
+
+div.next{
+  position: relative;
+  left: 300px;
+  top: 150px;
+  /* width:100px; */
+}
+
+.next_btn {
+  transition-duration: 0.4s;
+}
+
+.next_btn:hover {
+  background-color: #4CAF50; /* Green */
+  color: white;
+}
