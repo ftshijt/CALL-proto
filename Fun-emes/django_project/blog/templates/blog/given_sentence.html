@@ -2,17 +2,6 @@
 {% extends "blog/base.html" %}
 {% block content%}
 <style>
-.dropbtn {
-  background-color: #3498DB;
-  color: white;
-  width: 250px;
-  height: 40px;
-  padding: 16px;
-  font-size: 16px;
-  border: none;
-  cursor: pointer;
-}
-
 .sentence-btn {
   background-color: #3498DB;
   color: white;
@@ -114,6 +103,10 @@ select {
 			// Middle School Student
 			sentence = "Do you want to go play basketball or soccer together?"
 		}
+		else if (occupationID === "ID001" && scenarioID === "ID008") {
+			// Elementary student
+			sentence = "Hello, how are you doing?"
+		}
 		else if (occupationID === "ID003" && scenarioID === "ID008") {
 			// High School Student
 			sentence = "Did you hear that Daniel made the cut to Varsity Track and Field?"
@@ -132,52 +125,30 @@ select {
 
 		sentence = sentence.split(" ");
 
-		var spans = document.getElementById('display').childNodes;
+		var list = document.getElementById('display');
+		while (list.hasChildNodes()) {  
+  			list.removeChild(list.firstChild);
+		} 
 
-		console.log(spans.length);
-		if (spans.length > 3) {
-			for (i=1; i<spans.length;i++) {
-				spans[i].remove()
-			}
-		}
-
-		for(var i = 0; i < sentence.length;i++) {
+		for(var i=0; i<sentence.length;i++) {
 			if (i != sentence.length-1) {
 				sentence[i] += " ";
 			}
 			var newSpan = document.createElement('span');
 			newSpan.textContent = sentence[i];
-			document.getElementById('display').appendChild(newSpan);
+			list.appendChild(newSpan);
 		}
 
 	}
-
-	// function ShowSentence() {
-	// 	var sentence = JSON.parse("{{ sentence | escapejs }}");
-
-	// 	for(var i = 0; i < sentence.length;i++) {
-	// 		if (i != sentence.length-1) {
-	// 			sentence[i] += " ";
-	// 		}
-	// 		console.log(sentence[i]);
-	// 		var newSpan = document.createElement('span');
-	// 		newSpan.textContent = sentence[i];
-	// 		document.getElementById('display').appendChild(newSpan);
-	// 	}
-	// }
 	
 	function ScoreSentence() {
 		var score = JSON.parse("{{ score | escapejs }}");
-		var score_list = [];
-
-		for(i=0; i<score.words.length;i++) {
-			score_list.push(score.words[i].score);
-		}
+		console.log(score.words);
 
 		var spans = document.getElementById('display').childNodes;
 
-		for (i=1; i<spans.length;i++) {
-			spans[i].style.color = ChangeColor(score_list[i-1]);
+		for (i=0; i<score.words.length;i++) {
+			spans[i].style.color = ChangeColor(score.words[i].score);
 		}
 	}
 
@@ -206,7 +177,6 @@ select {
 <br/>
 
 <p>Repeat After Me...</p>
-<!-- <textarea type="text" id="generated" name="generated" style="width:1000px;height:180px;" readonly contenteditable="true">This is a sample sentence</textarea> -->
 <div class="row">
 	<div class="column" id="col1">
 
@@ -229,7 +199,7 @@ select {
     		{% csrf_token %}
 		<input type="hidden" name="record">
 		<button class="button button5" style="width:80px;height:30px">Record</button>
-		</form>
+	</form>
 		<h> {{data}}</h1>		
 		<br/>
 		<br/>		
