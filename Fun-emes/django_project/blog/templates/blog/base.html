@@ -11,23 +11,24 @@
 
     <link rel='stylesheet' type="text/css" href="{% static 'blog/main.css' %}">
     {% if title %}
-            <title>Django Blog - {{ title }}</title>
+            <title>Fun-emes - {{ title }}</title>
     {% else %}
-            <title>Django Blog</title>
+            <title>Fun-emes</title>
     {% endif %}
   </head>
   <body>
     <header class="site-header">
       <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
         <div class="container">
-          <a class="navbar-brand mr-4" href="/">Django Blog</a>
+          <a class="navbar-brand mr-4" href="/">Fun-emes</a>
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarToggle">
             <div class="navbar-nav mr-auto">
-              <a class="nav-item nav-link" href="{% url 'blog-home' %}">Home</a>
-              <a class="nav-item nav-link" href="{% url 'blog-about' %}">About</a>
+              <a class="nav-item nav-link" href="{% url 'home' %}">Home</a>
+              <a class="nav-item nav-link" href="{% url 'given_sentence' %}">Scenario Practice</a>
+              <a class="nav-item nav-link" href="{% url 'own_sentence' %}">Self Practice</a>
             </div>
             <!-- Navbar Right Side -->
             <div class="navbar-nav">
@@ -44,9 +45,9 @@
         <div class="col-md-8">
           {% block content %}{% endblock %}
         </div>
-        <div class="col-md-4">
+        <!-- <div class="col-md-4">
           <div class="content-section">
-            <h3>Our Sidebar</h3>
+            <h3>Feedback</h3>
             <p class='text-muted'>You can put any information here you'd like.
               <ul class="list-group">
                 <li class="list-group-item list-group-item-light">Latest Posts</li>
@@ -56,7 +57,7 @@
               </ul>
             </p>
           </div>
-        </div>
+        </div> -->
       </div>
     </main>
     <!-- Optional JavaScript -->
