@@ -1,6 +1,259 @@
 <!DOCTYPE html>
 {% extends "blog/base.html" %}
 {% block content%}
+<style>
+.dropbtn {
+  background-color: #3498DB;
+  color: white;
+  width: 250px;
+  height: 40px;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+.sentence-btn {
+  background-color: #3498DB;
+  color: white;
+  width: 250px;
+  height: 40px;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+.loader {
+  border: 16px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 16px solid #3498db;
+  width: 120px;
+  height: 120px;
+  -webkit-animation: spin 2s linear infinite; /* Safari */
+  animation: spin 2s linear infinite;
+}
+
+/* Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+select {
+	width: 200px;
+}
+
+#col1 {
+	float: left;
+  	width: 20.00%;
+}
+
+#col2 {
+	float: left;
+	width: 80.00%;
+}
+
+</style>
+<p>If you would like to learn from your own sentences, please write them below.</p>
+
+<script type = "text/JavaScript">
+
+	var sentence = JSON.parse("{{ sentence | escapejs }}");
+	var score = JSON.parse("{{ score | escapejs }}");
+	console.log(sentence);
+	console.log(score);
+
+	function GetOccupation(){
+		var e = document.getElementById("environment");
+		var result = e.options[e.selectedIndex].value;
+		return result;
+	}
+
+	function GetScenario(){
+		var e = document.getElementById("scenario");
+		var result = e.options[e.selectedIndex].value;
+		return result;
+	}
+
+	function GenerateSentence() {
+
+		var occupationID = GetOccupation();
+		var scenarioID = GetScenario();
+
+		var sentence;
+		if (occupationID === "ID002" && scenarioID === "ID008") {
+			// Middle School Student
+			sentence = "Do you want to go play basketball or soccer together?"
+		}
+		else if (occupationID === "ID003" && scenarioID === "ID008") {
+			// High School Student
+			sentence = "Did you hear that Daniel made the cut to Varsity Track and Field?"
+		}
+		else if (occupationID === "ID005" && scenarioID === "ID010") {
+			// Working employee
+			sentence = "This is a presentation to inform about how our project is applicable for certain aspects of company growth."
+		}
+		else if (occupationID === "ID013" && scenarioID === "ID014") {
+			// Middle-aged person needing medical assistance
+			sentence = "Do you know where the Emergency Room is located?"
+		}
+		else {
+			sentence = "Sentence to be determined"
+		}
+
+		sentence = sentence.split(" ");
+
+		var spans = document.getElementById('display').childNodes;
+
+		console.log(spans.length);
+		if (spans.length > 3) {
+			for (i=1; i<spans.length;i++) {
+				spans[i].remove()
+			}
+		}
+
+		for(var i = 0; i < sentence.length;i++) {
+			if (i != sentence.length-1) {
+				sentence[i] += " ";
+			}
+			var newSpan = document.createElement('span');
+			newSpan.textContent = sentence[i];
+			document.getElementById('display').appendChild(newSpan);
+		}
+
+	}
+
+	// function ShowSentence() {
+	// 	var sentence = JSON.parse("{{ sentence | escapejs }}");
+
+	// 	for(var i = 0; i < sentence.length;i++) {
+	// 		if (i != sentence.length-1) {
+	// 			sentence[i] += " ";
+	// 		}
+	// 		console.log(sentence[i]);
+	// 		var newSpan = document.createElement('span');
+	// 		newSpan.textContent = sentence[i];
+	// 		document.getElementById('display').appendChild(newSpan);
+	// 	}
+	// }
+
+	function ScoreSentence() {
+		var score = JSON.parse("{{ score | escapejs }}");
+		var score_list = [];
+
+		for(i=0; i<score.words.length;i++) {
+			score_list.push(score.words[i].score);
+		}
+
+		var spans = document.getElementById('display').childNodes;
+
+		for (i=1; i<spans.length;i++) {
+			spans[i].style.color = ChangeColor(score_list[i-1]);
+		}
+	}
+
+	function ChangeColor(score) {
+		if (score <= 50) {
+			return "red";
+		}
+		else if (score <= 75) {
+			return "yellow";
+		}
+		else {
+			return "green";
+		}
+	}
+
+  function getSentence(){
+
+    var inputVal = document.getElementById("user_input").value;
+    var spans = document.getElementById('display');
+    if (spans.length > 0) {
+			for (i=1; i<spans.length;i++) {
+				spans[i].remove()
+			}
+    }
+
+    // alert(inputVal.length);
+    for(var i = 0; i < inputVal.length;i++) {
+			if (i != inputVal.length-1) {
+				inputVal[i] += " ";
+			}
+			var newSpan = document.createElement('span');
+			newSpan.textContent = inputVal[i];
+			document.getElementById('display').appendChild(newSpan);
+		}
+
+    spans.value = inputVal;
+  }
+</script>
+
+<p>Repeat After Me...</p>
+<!-- <textarea type="text" id="generated" name="generated" style="width:1000px;height:180px;" readonly contenteditable="true">This is a sample sentence</textarea> -->
+<div class="user_input">
+  <input type="text" id="user_input" name="test" size="70" maxlength="70" placeholder="This is a sample sentence"/>
+  <br/>
+  <br/>
+      <button class="score_btn" onclick="getSentence()" style="width:170px;height:30px;">Submit</button>
+</div>
+<br/>
+<br/>
+<br/>
+<br/>
+<div class="row">
+	<div class="column" id="col1">
+
+	</div>
+	<div class="column" id="col2">
+		<h3 id='display'></h3>
+	</div>
+</div>
+
+<br/>
+<br/>
+<button class="listen_btn" style="width:170px;height:30px;">Listen To Sentence</button>
+
+<br/>
+<br/>
+
+<div class="row">
+  <div class="column" style="width:33.33%;">
+    <form method="post">
+    		{% csrf_token %}
+		<input type="hidden" name="record">
+		<button class="button button5" style="width:80px;height:30px">Record</button>
+		</form>
+		<h> {{data}}</h1>
+		<br/>
+		<br/>
+		<button class="play_btn" style="width:170px;height:30px;">Play Your Audio</button>
+		<br/>
+		<br/>
+		<button class="record_btn" style="width:170px;height:30px;">Record Again</button>
+		<br/>
+		<br/>
+  </div>
+  <div class="column" style="width:33.33%;">
+  </div>
+  <div class="column" style="width:33.33%;">
+    <button class="score_btn" onclick="ScoreSentence()" style="width:170px;height:30px;">Evaluate</button>
+	<br/>
+	<br/>
+  </div>
+</div>
+
+
+
+{% endblock content %}
+<!-- <!DOCTYPE html>
+
+
 <link rel="stylesheet" type="text/css" href="some_style.css">
 <style>
 div.center{
@@ -76,4 +329,4 @@ div.next{
     </div>
 
   </div>
-{% endblock content %}
+ -->
