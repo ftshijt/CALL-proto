@@ -2,42 +2,34 @@
 {% extends "blog/base.html" %}
 {% block content%}
 <style>
-.sentence-btn {
-  background-color: #3498DB;
-  color: white;
-  width: 250px;
-  height: 40px;
-  padding: 16px;
-  font-size: 16px;
-  border: none;
-  cursor: pointer;
-}
-
-.loader {
+/*.loader {
   border: 16px solid #f3f3f3;
   border-radius: 50%;
   border-top: 16px solid #3498db;
   width: 120px;
   height: 120px;
-  -webkit-animation: spin 2s linear infinite; /* Safari */
+  -webkit-animation: spin 2s linear infinite;
   animation: spin 2s linear infinite;
-}
+}*/
 
 /* Safari */
-@-webkit-keyframes spin {
+/*@-webkit-keyframes spin {
   0% { -webkit-transform: rotate(0deg); }
   100% { -webkit-transform: rotate(360deg); }
-}
+}*/
 
-@keyframes spin {
+/*@keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+*/
 
+/* Class-based styling */
 select {
 	width: 200px;
 }
 
+/* ID-based styling */
 #col1 {
 	float: left;
   	width: 20.00%;
@@ -49,52 +41,27 @@ select {
 }
 
 </style>
-<p>To gauge your environment and give you sentences like you will more likely encounter, please tell us your occupation: </p>
-<select id="environment">
-	<option value="None">-- Select --</option>
-	<option value="ID001">Elementary School</option>
-	<option value="ID002">Middle School</option>
-	<option value="ID003" selected>Highschool</option>
-	<option value="ID004">College</option>
-	<option value="ID005">Employed</option>
-	<option value="ID006">Unemployed</option>
-	<option value="ID007">Retired</option>
-</select>
-<br/>
-<br/>
-<p>And now, please tell us the scenario that you wish to prepare for: </p>
-<select id="scenario">
-	<option value="None">-- Select --</option>
-	<option value="ID008" selected>Classroom (student)</option>
-	<option value="ID009">Classroom (teacher)</option>
-	<option value="ID010">Work (employee)</option>
-	<option value="ID011">Work (boss)</option>
-	<option value="ID012">Restaurant</option>
-	<option value="ID013">Hospital</option>
-	<option value="ID014">Social</option>
-</select>
 
 <script type = "text/JavaScript">
-	
-	var sentence = JSON.parse("{{ sentence | escapejs }}");
-	var score = JSON.parse("{{ score | escapejs }}");
-	console.log(sentence);
-	console.log(score);
 
+	// Get ID of occupation
+	// returns string of ID
 	function GetOccupation(){
 		var e = document.getElementById("environment");
 		var result = e.options[e.selectedIndex].value;
 		return result;
 	}
 
+	// Get ID from scenario dropdown
+	// returns string of ID
 	function GetScenario(){
 		var e = document.getElementById("scenario");
 		var result = e.options[e.selectedIndex].value;
 		return result;
 	}
 
+	// Generate Sentence Button
 	function GenerateSentence() {
-
 		var occupationID = GetOccupation();
 		var scenarioID = GetScenario();
 
@@ -123,13 +90,18 @@ select {
 			sentence = "Sentence to be determined"
 		}
 
-		sentence = sentence.split(" ");
+		// update the input in the form so that it can be passed to python
+		document.getElementById("sentence").value = sentence;
 
+
+		sentence = sentence.split(" ");
+		// clears spans elements if there are any 
 		var list = document.getElementById('display');
 		while (list.hasChildNodes()) {  
   			list.removeChild(list.firstChild);
-		} 
+		}
 
+		// add words to parent element one by one
 		for(var i=0; i<sentence.length;i++) {
 			if (i != sentence.length-1) {
 				sentence[i] += " ";
@@ -138,15 +110,17 @@ select {
 			newSpan.textContent = sentence[i];
 			list.appendChild(newSpan);
 		}
-
 	}
 	
+
+	// Evaluate Button
 	function ScoreSentence() {
+		// process scored data passed from python
 		var score = JSON.parse("{{ score | escapejs }}");
-		console.log(score.words);
 
 		var spans = document.getElementById('display').childNodes;
 
+		// loop through the JSON words, color each word in the sentence by score
 		for (i=0; i<score.words.length;i++) {
 			spans[i].style.color = ChangeColor(score.words[i].score);
 		}
@@ -166,12 +140,35 @@ select {
 
 </script>
 
+<p>To gauge your environment and give you sentences like you will more likely encounter, please tell us your occupation: </p>
+<select id="environment">
+	<option value="None">-- Select --</option>
+	<option value="ID001">Elementary School</option>
+	<option value="ID002">Middle School</option>
+	<option value="ID003" selected>Highschool</option>
+	<option value="ID004">College</option>
+	<option value="ID005">Employed</option>
+	<option value="ID006">Unemployed</option>
+	<option value="ID007">Retired</option>
+</select>
 <br/>
 <br/>
-<br/>
+<p>And now, please tell us the scenario that you wish to prepare for: </p>
+<select id="scenario">
+	<option value="None">-- Select --</option>
+	<option value="ID008" selected>Classroom (student)</option>
+	<option value="ID009">Classroom (teacher)</option>
+	<option value="ID010">Work (employee)</option>
+	<option value="ID011">Work (boss)</option>
+	<option value="ID012">Restaurant</option>
+	<option value="ID013">Hospital</option>
+	<option value="ID014">Social</option>
+</select>
 
+<br/>
+<br/>
+<br/>
 <button class="sentence_btn" style="width:170px;height:30px;" onclick="GenerateSentence()">Generate Sentence</button>
-
 <br/>
 <br/>
 <br/>
@@ -186,9 +183,9 @@ select {
 	</div>
 </div>
 
+<!-- <br/>
 <br/>
-<br/>
-<button class="listen_btn" style="width:170px;height:30px;">Listen To Sentence</button>
+<button class="listen_btn" style="width:170px;height:30px;">Listen To Sentence</button> -->
 
 <br/>
 <br/>
@@ -197,18 +194,19 @@ select {
   <div class="column" style="width:33.33%;">
     <form method="post">
     		{% csrf_token %}
+    	<input type="hidden" id="sentence" name="text">
 		<input type="hidden" name="record">
 		<button class="button button5" style="width:80px;height:30px">Record</button>
 	</form>
 		<h> {{data}}</h1>		
-		<br/>
+<!-- 		<br/>
 		<br/>		
 		<button class="play_btn" style="width:170px;height:30px;">Play Your Audio</button>
 		<br/>
 		<br/>
 		<button class="record_btn" style="width:170px;height:30px;">Record Again</button>		
 		<br/>
-		<br/>
+		<br/> -->
   </div>
   <div class="column" style="width:33.33%;">
   </div>
@@ -218,6 +216,32 @@ select {
 	<br/>
   </div>
 </div>
+
+
+
+<script>
+	var sentence = JSON.parse("{{ sentence | escapejs }}");
+	if (sentence !== null) {
+			console.log(sentence);
+			sentence = sentence.split(" ");
+			var list = document.getElementById('display');
+			while (list.hasChildNodes()) {  
+  				list.removeChild(list.firstChild);
+			}
+
+			for(var i=0; i<sentence.length;i++) {
+				if (i != sentence.length-1) {
+					sentence[i] += " ";
+				}
+				var newSpan = document.createElement('span');
+				newSpan.textContent = sentence[i];
+				list.appendChild(newSpan);
+			}
+		}
+		else {
+			console.log("no sentence");
+		}
+</script>
 
 
 
