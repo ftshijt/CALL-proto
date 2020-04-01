@@ -172,25 +172,28 @@ select {
 
   function getSentence(){
 
-    var inputVal = document.getElementById("user_input").value;
-    var spans = document.getElementById('display');
-    if (spans.length > 0) {
+    var sentence = document.getElementById("user_input").value;
+    var spans = document.getElementById('display').childNodes;
+    if (spans.length > 3) {
 			for (i=1; i<spans.length;i++) {
 				spans[i].remove()
 			}
     }
 
     // alert(inputVal.length);
-    for(var i = 0; i < inputVal.length;i++) {
-			if (i != inputVal.length-1) {
-				inputVal[i] += " ";
+    // sentence = inputVal.split(" ");
+
+		// var spans = document.getElementById('display').childNodes;
+
+		for(var i = 0; i < sentence.length;i++) {
+			if (i != sentence.length-1) {
+				sentence[i] += " ";
 			}
 			var newSpan = document.createElement('span');
-			newSpan.textContent = inputVal[i];
+			newSpan.textContent = sentence[i];
 			document.getElementById('display').appendChild(newSpan);
 		}
-
-    spans.value = inputVal;
+    // spans.value = sentence;>
   }
 </script>
 
@@ -217,7 +220,7 @@ select {
 
 <br/>
 <br/>
-<button class="listen_btn" style="width:170px;height:30px;">Listen To Sentence</button>
+<!-- <button class="listen_btn" style="width:170px;height:30px;">Listen To Sentence</button> -->
 
 <br/>
 <br/>
