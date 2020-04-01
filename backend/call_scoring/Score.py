@@ -1,33 +1,47 @@
 import json
 import re
+import os
 import csv
 import numpy as np
 import math
+import librosa
+import soundfile as sf
 import argparse
+from scipy.io import wavfile
+from kaldiio import load_ark
+
+
+def PackZero(integer, size):
+        pack = size - len(str(integer))
+        return "0" * pack + str(integer)
 
 
 class Score():
-    def __init__(self, args):
-        self.phone_dict, self.w2p = self.word2phone(args)
-        self.sr = args.sr
+    def __init__(self, lexicon, phones, sr, kaldi_workspace, utt_id):
+        self.phone_dict, self.w2p = self.Word2Phone(lexicon, phones)
+        self.sr = sr
+        self.kaldi_workspace = kaldi_workspace
+        self.utt_id = utt_id
+        self.exp_path = "tdnn-XXX"
+        os.system("export PATH=%s:$PATH" % kaldi_workspace)
         # ...
 
-    def cleantext(self, text):
+    def CleanText(self, text):
         punctuation = '!,;:?"\''
         text = re.sub(r'[{}]+'.format(punctuation),'',text)
         return text.strip().upper()
 
-    def word2phone(self, args):
-        w2p_file = open(args.lexiconaddr, "r", encoding="latin-1")
+    def Word2Phone(self, lexicon, phones):
+        w2p_file = open(lexicon, "r", encoding="latin-1")
         w2p_dict = {}
-        phone_file = open(args.phonesaddr, "r", encoding="utf-8")
+        phone_file = open(phones, "r", encoding="utf-8")
         phone_dict = {}
         reader = csv.reader(phone_file, delimiter=" ")
         id_num = 0
         for line in reader:
             phone_dict[line[0]] = int(id_num)
             id_num += 1
-
+        print (phone_dict)
         while True:
             line = w2p_file.readline()
             if not line:
@@ -47,8 +61,8 @@ class Score():
         return phone_dict, w2p_dict
 
 
-    def text2phone(self, text):
-        text = self.cleantext(text)
+    def Text2Phone(self, text):
+        text = self.CleanText(text)
         phone_list = [1]
         words = text.split(" ")
         try:
@@ -59,14 +73,57 @@ class Score():
             print(words)
             print(text)
         t2p = phone_list
-
+        print(t2p)
         return t2p
 
-    def kaldi_infer(self, audio):
-        return np.random.randn(400, 87)
+    def CreateTestEnv(self, audio, wav_id):
+        # audio is a wavfile path
+        data_path = os.path.join(self.kaldi_workspace, "data/audio_%s"%PackZero(self.utt_id, size=6))
+        if not os.path.exists(data_path):
+            os.makedirs(data_path)
+        wav_file = os.path.join(data_path, "%s.wav"%wav_id)
+        frame, sr = librosa.load(audio)
+        frame = librosa.resample(frame, sr, self.sr)
+        sf.write(wav_file, frame, self.sr, subtype='PCM_16')
+
+        wavscp = open(os.path.join(data_path, "wav.scp"), "w")
+        utt2spk = open(os.path.join(data_path, "utt2spk"), "w")
+        spk2utt = open(os.path.join(data_path, "spk2utt"), "w")
+        text = open(os.path.join(data_path, "text"), "w")
+        wavscp.write("%s_%s %s" %(wav_id, wav_id, wav_file))
+        text.write("%s_%s %s" %(wav_id, wav_id, "placeholder"))
+        utt2spk.write("%s_%s %s" %(wav_id, wav_id, wav_id))
+        spk2utt.write("%s %s_%s" %(wav_id, wav_id, wav_id))
+        wavscp.close()
+        utt2spk.close()
+        text.close()
+        spk2utt.close()
+
+    def KaldiInfer(self, audio):
+        wav_id = PackZero(self.utt_id, size=6)
+        self.CreateTestEnv(audio, wav_id)
+        audio_path = "audio_%s"%PackZero(self.utt_id, size=6)
+        # pass workspace, infer_set and num of jobs
+        infer_log = os.popen("%s %s %s 1" 
+            % (os.path.join(self.kaldi_workspace, "extract_post.sh"),
+                self.kaldi_workspace, os.path.join(self.kaldi_workspace, "data", audio_path)))
+        infer_log = infer_log.readlines()
+        if "infer success" not in " ".join(infer_log):
+            print("Error\n%s" %infer_log)
+        ark_post = os.path.join(self.kaldi_workspace,
+            "data", audio_path + "_post", "phone_post.1.ark")
+
+        post_ark = load_ark(ark_post)
+        for key, numpy_array in post_ark:
+            if key == "%s_%s" %(wav_id, wav_id):
+                post_numpy = numpy_array
+                break
+        print(post_numpy.shape)
+        self.utt_id += 1
+        return post_numpy
 
     # dp with optional silence
-    def dp_optional_silence(self, post_probs, template):
+    def AlginOptionalSilence(self, post_probs, template):
         # i phone in template; j feats position
         # dp[i, j] = max(dp[i, j-1], dp[i-1, j-1], dp[i-2, j-1])
         feats_size = len(post_probs) # frame size
@@ -114,18 +171,20 @@ class Score():
                 template_position -= 2
                 align_results.append(template[template_position])
             feat_position -= 1
-
+        trmp_shw = align_results[::-1]
+        print(trmp_shw.index(44), trmp_shw.index(58))
+        print(trmp_shw)
         return align_results[::-1]
 
-    def alignment(self, post_probs, t2p):
+    def Align(self, post_probs, t2p):
         try:
-            aligned_result = self.dp_optional_silence(post_probs, t2p)
+            aligned_result = self.AlginOptionalSilence(post_probs, t2p)
         except:
             print('error on this text!')
 
         return aligned_result
 
-    def pscore(self, prob_segment, phone_id):
+    def PScore(self, prob_segment, phone_id):
         if len(prob_segment) == 0:
             return 0
         length =len(prob_segment)
@@ -140,11 +199,11 @@ class Score():
                 if prob[phone_id - 1] < 1e-8:
                     target_result.append(0)
                     continue
-                target_result.append(math.log(max(prob)) / math.log(prob[phone_id - 1]) * 100)
+                target_result.append(math.log(max(prob)) / math.log(prob[phone_id]) * 100)
         target_result = sorted(target_result)
         return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4)
 
-    def cal_fluency(self, result_dict, ar):
+    def CalcFluency(self, result_dict, ar):
         if len(result_dict["words"]) == 1:
             return 100
         content = result_dict["end"] - result_dict["start"]
@@ -158,11 +217,11 @@ class Score():
 
         return fluency
 
-    def scores(self, audio, text):
-        post_probs = self.kaldi_infer(audio)
-        t2p = self.text2phone(text)
-        aligned_result = self.alignment(post_probs, t2p)
-        text = self.cleantext(text)
+    def CalcScores(self, audio, text):
+        post_probs = self.KaldiInfer(audio)
+        t2p = self.Text2Phone(text)
+        aligned_result = self.Align(post_probs, t2p)
+        text = self.CleanText(text)
         probs = post_probs
         phones = self.phone_dict
         tphones = t2p
@@ -212,7 +271,7 @@ class Score():
                 while align_position < len(ar) and ar[align_position] == template[template_position]:
                     align_position += 1
                 phone_dict["end"] = align_position
-                phone_dict["score"] = self.pscore(prob[phone_dict["start"]:phone_dict["end"]], template[template_position])
+                phone_dict["score"] = self.PScore(prob[phone_dict["start"]:phone_dict["end"]], template[template_position])
                 word_dict["phones"].append(phone_dict)
                 template_position += 1
             vowels = []
@@ -240,9 +299,10 @@ class Score():
         result_dict["start"] = (result_dict["words"])[0]["start"]
         result_dict["end"] = (result_dict["words"])[-1]["end"]
         result_dict["pronunciation"] = round(phones_sum / phones_count, 4)
-        result_dict["fluency"] = round(self.cal_fluency(result_dict, ar), 4)
+        result_dict["fluency"] = round(self.CalcFluency(result_dict, ar), 4)
         output = result_dict
         print(output)
+        return output
 
 
 if __name__ == "__main__":
@@ -250,10 +310,14 @@ if __name__ == "__main__":
     parser.add_argument('lexiconaddr', type=str, help='the addr of lexicon')
     parser.add_argument('phonesaddr', type=str, help='the addr of phones')
     parser.add_argument('sr', type=int, help='sr')
+    parser.add_argument('kaldi_workspace', type=str, help='kaldi_workspace')
+    parser.add_argument('utt_id', type=int, help='utt_id')
     args = parser.parse_args()
 
-    text = "how are you?"
-    audio = 0
-
-    Score_test = Score(args)
-    score_output = Score_test.scores(audio, text)
+    text = "hello, how are you doing?"
+    audio = '/home/nan/CALL-proto/Fun-emes/django_project/microphone-results.wav'
+    Score_test = Score(args.lexiconaddr, args.phonesaddr, args.sr, args.kaldi_workspace, args.utt_id)
+   # score_output, utt_id = Score_test.CalcScores(audio, text)
+    score_output = Score_test.CalcScores(audio, text)
+    wav_id = PackZero(args.utt_id, 6)
+    json.dump(score_output, open("/home/nan/CALL-proto/Fun-emes/django_project/score_wav%s.json"%wav_id, "w", encoding="utf-8"))
