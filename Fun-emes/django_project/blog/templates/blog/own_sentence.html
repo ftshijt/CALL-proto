@@ -146,7 +146,7 @@ select {
 	function ScoreSentence() {
 		var score = JSON.parse("{{ score | escapejs }}");
 		var score_list = [];
-
+    console.log(score);
 		for(i=0; i<score.words.length;i++) {
 			score_list.push(score.words[i].score);
 		}
@@ -173,17 +173,13 @@ select {
   function getSentence(){
 
     var sentence = document.getElementById("user_input").value;
-    var spans = document.getElementById('display').childNodes;
-    if (spans.length > 3) {
-			for (i=1; i<spans.length;i++) {
-				spans[i].remove()
-			}
+    // console.log(sentence);
+    sentence = sentence.split(" ");
+
+    var spans = document.getElementById('display');
+    while (spans.hasChildNodes()){
+      spans.removeChild(spans.firstChild);
     }
-
-    // alert(inputVal.length);
-    // sentence = inputVal.split(" ");
-
-		// var spans = document.getElementById('display').childNodes;
 
 		for(var i = 0; i < sentence.length;i++) {
 			if (i != sentence.length-1) {

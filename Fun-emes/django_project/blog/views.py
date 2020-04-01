@@ -10,7 +10,6 @@ abs_file_path = os.path.join(score_dir, rel_path)
 with open(abs_file_path, 'r') as f:
     score_dict = json.load(f)
     score_dict = json.dumps(score_dict)
-
 sentence = "This is a sample sentence."
 sentence_list = sentence.split()
 sentence_json = json.dumps(sentence_list)
@@ -28,7 +27,7 @@ def home(request):
     return render(request, 'blog/home.html')
 
 def own_sentence(request):
-    return render(request, 'blog/own_sentence.html', {'title': 'Use Your Own Sentence'})
+    return render(request, 'blog/own_sentence.html', {'title': 'Use Your Own Sentence', 'score':score_dict, 'sentence': sentence_json})
 
 def given_sentence(request):
     data = request.POST.get('record')
@@ -46,10 +45,10 @@ def given_sentence(request):
         with open("microphone-results.wav", "wb") as f:
             f.write(audio.get_wav_data())
         ### text = "Hello how are you doing?"
-        ### udio = "/Users/garyxian/Desktop/JHU/AI_systems/CALL-proto/Fun-emes/django_project/microphone-results.wav"  
+        ### udio = "/Users/garyxian/Desktop/JHU/AI_systems/CALL-proto/Fun-emes/django_project/microphone-results.wav"
         # from scipy.io.wavfile import read
         # import numpy as np
-        # a = read("microphone-results.wav") 
+        # a = read("microphone-results.wav")
         # audio_arr = np.array(a[1],dtype=float)
         # print(audio_arr)
         ### score_output = Score_test.CalcScores(audio, text)
@@ -92,4 +91,3 @@ def validate_username(request):
 # def evaluate(request):
 #     # score the wav file
 #     # send the resulting JSON file to frontend
-
