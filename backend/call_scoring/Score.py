@@ -9,7 +9,7 @@ import soundfile as sf
 import argparse
 from scipy.io import wavfile
 from kaldiio import load_ark
-
+import string 
 
 def PackZero(integer, size):
         pack = size - len(str(integer))
@@ -17,8 +17,8 @@ def PackZero(integer, size):
 
 
 class Score():
-    def __init__(self, lexicon, phones, sr, kaldi_workspace, utt_id):
-        self.phone_dict, self.w2p = self.Word2Phone(lexicon, phones)
+    def __init__(self, lexicon, phones, sr, kaldi_workspace, utt_id, flag_version):
+        self.phone_dict, self.w2p = self.Word2Phone(lexicon, phones, flag_version)
         self.sr = sr
         self.kaldi_workspace = kaldi_workspace
         self.utt_id = utt_id
@@ -31,14 +31,50 @@ class Score():
         text = re.sub(r'[{}]+'.format(punctuation),'',text)
         return text.strip().upper()
 
-    def Word2Phone(self, lexicon, phones):
+    def Word2Phone(self, lexicon, phones, flag_version):
         w2p_file = open(lexicon, "r", encoding="latin-1")
         w2p_dict = {}
         phone_file = open(phones, "r", encoding="utf-8")
         phone_dict = {}
         reader = csv.reader(phone_file, delimiter=" ")
         id_num = 0
+        if flag_version:
+            counter = -1  ### Nan
         for line in reader:
+            ### Nan
+            if flag_version:
+               counter += 1
+               if counter == 3 or counter == 4 or counter == 5:
+                   continue
+               if counter == 7 or counter == 8 or counter == 9:
+                   continue
+               if counter == 11 or counter == 12 or counter == 13:
+                   continue
+               if counter == 15 or counter == 16 or counter == 17:
+                   continue
+               if counter == 19 or counter == 20 or counter == 21:
+                   continue
+               if counter == 23 or counter == 24 or counter == 25:
+                   continue
+               if counter == 31 or counter == 32 or counter == 33:
+                   continue
+               if counter == 35 or counter == 36 or counter == 37:
+                   continue
+               if counter == 39 or counter == 40 or counter == 41:
+                   continue
+               if counter == 46 or counter == 47 or counter == 48:
+                   continue
+               if counter == 50 or counter == 51 or counter == 52:
+                   continue
+               if counter == 60 or counter == 61 or counter == 62:
+                   continue
+               if counter == 64 or counter == 65 or counter == 66:
+                   continue
+               if counter == 74 or counter == 75 or counter == 76:
+                   continue
+               if counter == 78 or counter == 79 or counter == 80:
+                   continue
+               ###
             phone_dict[line[0]] = int(id_num)
             id_num += 1
         print (phone_dict)
@@ -56,8 +92,21 @@ class Score():
             else:
                 word = line[0]
                 phones = line[1].split(" ")
-                w2p_dict[word] = list(map(lambda x: phone_dict[x], phones))
 
+                #### Nan
+                if flag_version:
+                   translation = str.maketrans(string.ascii_letters, string.ascii_letters, string.digits)
+                   phones_NoNum = []
+                   for ph in phones:
+                      if '0' in ph or '1' in ph or '2' in ph:
+                         ph = ph.translate(translation)
+                         phones_NoNum.append(ph)
+                      else:
+                         phones_NoNum.append(ph)
+                ####
+                   w2p_dict[word] = list(map(lambda x: phone_dict[x], phones_NoNum))
+                else: 
+                   w2p_dict[word] = list(map(lambda x: phone_dict[x], phones))
         return phone_dict, w2p_dict
 
 
@@ -99,7 +148,7 @@ class Score():
         text.close()
         spk2utt.close()
 
-    def KaldiInfer(self, audio):
+    def KaldiInfer(self, audio, flag_version):
         wav_id = PackZero(self.utt_id, size=6)
         self.CreateTestEnv(audio, wav_id)
         audio_path = "audio_%s"%PackZero(self.utt_id, size=6)
@@ -120,6 +169,16 @@ class Score():
                 break
         print(post_numpy.shape)
         self.utt_id += 1
+        ### Nan
+        if flag_version:
+           del_list = [5,9,13,17,21,25,33,37,41,48,52,62,66,76,80]
+           del_list_all = [3,4,5,7,8,9,11,12,13,15,16,17,19,20,21,23,24,25,31,32,33,35,36,37,39,40,41,46,47,48,50,51,52,60,61,62,64,65,66,74,75,76,78,79,80]
+           for i in del_list:
+                for j in [i,i-1,i-2]:
+                    post_numpy[:,j-1] += post_numpy[:,j]
+           post_numpy = np.delete(post_numpy, del_list_all, axis=1)
+           np.savetxt('post_new.csv', post_numpy, delimiter = ',')     ### Delete later
+        ###
         return post_numpy
 
     # dp with optional silence
@@ -171,18 +230,15 @@ class Score():
                 template_position -= 2
                 align_results.append(template[template_position])
             feat_position -= 1
-        trmp_shw = align_results[::-1]
-        print(trmp_shw.index(44), trmp_shw.index(58))
-        print(trmp_shw)
         return align_results[::-1]
 
     def Align(self, post_probs, t2p):
         try:
-            aligned_result = self.AlginOptionalSilence(post_probs, t2p)
+            aligned_result_iner = self.AlginOptionalSilence(post_probs, t2p)
         except:
             print('error on this text!')
 
-        return aligned_result
+        return aligned_result_iner
 
     def PScore(self, prob_segment, phone_id):
         if len(prob_segment) == 0:
@@ -217,8 +273,8 @@ class Score():
 
         return fluency
 
-    def CalcScores(self, audio, text):
-        post_probs = self.KaldiInfer(audio)
+    def CalcScores(self, audio, text, flag_version):
+        post_probs = self.KaldiInfer(audio, flag_version)
         t2p = self.Text2Phone(text)
         aligned_result = self.Align(post_probs, t2p)
         text = self.CleanText(text)
@@ -312,12 +368,14 @@ if __name__ == "__main__":
     parser.add_argument('sr', type=int, help='sr')
     parser.add_argument('kaldi_workspace', type=str, help='kaldi_workspace')
     parser.add_argument('utt_id', type=int, help='utt_id')
+    parser.add_argument('--version', type=bool, default = False, help='Version 1 or 2')
     args = parser.parse_args()
 
     text = "hello, how are you doing?"
     audio = '/home/nan/CALL-proto/Fun-emes/django_project/microphone-results.wav'
-    Score_test = Score(args.lexiconaddr, args.phonesaddr, args.sr, args.kaldi_workspace, args.utt_id)
+    print (args.version)
+    Score_test = Score(args.lexiconaddr, args.phonesaddr, args.sr, args.kaldi_workspace, args.utt_id, args.version)
    # score_output, utt_id = Score_test.CalcScores(audio, text)
-    score_output = Score_test.CalcScores(audio, text)
+    score_output = Score_test.CalcScores(audio, text, args.version)
     wav_id = PackZero(args.utt_id, 6)
     json.dump(score_output, open("/home/nan/CALL-proto/Fun-emes/django_project/score_wav%s.json"%wav_id, "w", encoding="utf-8"))
