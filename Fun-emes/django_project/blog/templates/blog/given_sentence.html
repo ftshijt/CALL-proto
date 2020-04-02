@@ -43,7 +43,7 @@ select {
 </style>
 
 <script type = "text/JavaScript">
-
+	var clicked = 1;
 	// Get ID of occupation
 	// returns string of ID
 	function GetOccupation(){
@@ -62,6 +62,7 @@ select {
 
 	// Generate Sentence Button
 	function GenerateSentence() {
+		console.log(clicked)
 		var occupationID = GetOccupation();
 		var scenarioID = GetScenario();
 
@@ -76,7 +77,16 @@ select {
 		}
 		else if (occupationID === "ID003" && scenarioID === "ID008") {
 			// High School Student
-			sentence = "Did you hear that Daniel made the cut to Varsity Track and Field?"
+			if (clicked == 1) {
+				sentence = "Did you hear that Daniel made the cut to Varsity Track and Field?"
+			}
+			else if (clicked == 2) {
+				sentence = "I have to study for my AP Calculus test."
+			}
+			else {
+				sentence = "He scored three amazing goals in yesterday's game."
+			}
+			clicked += 1;
 		}
 		else if (occupationID === "ID005" && scenarioID === "ID010") {
 			// Working employee
@@ -92,7 +102,6 @@ select {
 
 		// update the input in the form so that it can be passed to python
 		document.getElementById("sentence").value = sentence;
-
 
 		sentence = sentence.split(" ");
 		// clears spans elements if there are any 
@@ -111,7 +120,6 @@ select {
 			list.appendChild(newSpan);
 		}
 	}
-	
 
 	// Evaluate Button
 	function ScoreSentence() {
@@ -168,7 +176,7 @@ select {
 <br/>
 <br/>
 <br/>
-<button class="sentence_btn" style="width:170px;height:30px;" onclick="GenerateSentence()">Generate Sentence</button>
+<button class="sentence_btn" style="width:170px;height:30px;" onclick="GenerateSentence('clicked')">Generate Sentence</button>
 <br/>
 <br/>
 <br/>
@@ -195,6 +203,7 @@ select {
     <form method="post">
     		{% csrf_token %}
     	<input type="hidden" id="sentence" name="text">
+    	<input type="hidden" id="count" name="count">
 		<input type="hidden" name="record">
 		<button class="button button5" style="width:80px;height:30px">Record</button>
 	</form>
