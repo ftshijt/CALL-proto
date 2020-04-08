@@ -27,7 +27,7 @@ class Score():
         # ...
 
     def CleanText(self, text):
-        punctuation = '!,;:?"\''
+        punctuation = '.!,;:?"\''
         text = re.sub(r'[{}]+'.format(punctuation),'',text)
         return text.strip().upper()
 
@@ -37,7 +37,7 @@ class Score():
         phone_file = open(phones, "r", encoding="utf-8")
         phone_dict = {}
         reader = csv.reader(phone_file, delimiter=" ")
-        id_num = 0
+        id_num = 1
         if flag_version:
             counter = -1  ### Nan
         for line in reader:
@@ -114,13 +114,14 @@ class Score():
         text = self.CleanText(text)
         phone_list = [1]
         words = text.split(" ")
-        try:
-            for word in words:
+
+        for word in words:
+             try:
                 phone_list.extend(self.w2p[word])
                 phone_list.append(1)
-        except:
-            print(words)
-            print(text)
+             except:
+                print(word)
+                print(text)
         t2p = phone_list
         print(t2p)
         return t2p
@@ -161,13 +162,15 @@ class Score():
             print("Error\n%s" %infer_log)
         ark_post = os.path.join(self.kaldi_workspace,
             "data", audio_path + "_post", "phone_post.1.ark")
+       ###############
+      #  ark_post = os.path.join('/home/nan/CALL-proto/backend/audio_000151_post_test/phone_post.1.ark')
 
         post_ark = load_ark(ark_post)
         for key, numpy_array in post_ark:
             if key == "%s_%s" %(wav_id, wav_id):
                 post_numpy = numpy_array
                 break
-        print(post_numpy.shape)
+       # print(post_numpy.shape)
         self.utt_id += 1
         ### Nan
         if flag_version:
@@ -180,6 +183,54 @@ class Score():
            np.savetxt('post_new.csv', post_numpy, delimiter = ',')     ### Delete later
         ###
         return post_numpy
+
+
+    # dp with fixed silence
+    def AlginFixedSilence(self, post_probs, template):
+        # i phone in template; j feats position
+        # dp[i, j] = max(dp[i, j-1], dp[i -1, j-1])
+        feats_size = len(post_probs)
+        probs = np.array(post_probs)
+        # probs = np.log(np.array(post_probs))
+        loss = np.zeros((len(template), feats_size))
+        path = np.zeros((len(template), feats_size))
+
+        loss[0][0] = probs[0][0]
+
+        for i in range(len(template)):
+             for j in range(i, feats_size):
+                if j == 0:
+                    continue
+                elif i == 0:
+                    loss[i][j] = loss[i][j - 1] + probs[j][template[i] - 1]
+                # 0 for stay
+                    path[i][j] = 0
+                else:
+                    loss_stay = loss[i][j - 1] + probs[j][template[i] - 1]
+                    loss_go = loss[i - 1][j - 1] + probs[j][template[i] - 1]
+                    if loss_go > loss_stay:
+                        # 1 for change phone
+                        path[i][j] = 1
+                        loss[i][j] = loss_go
+                    else:
+                    # 0 for stay
+                        path[i][j] = 0
+                        loss[i][j] = loss_stay
+
+        template_position = len(template) - 1
+        feat_position = feats_size - 1
+        align_results = [template[template_position]]
+        while True:
+            if template_position == 0 and feat_position == 0:
+                break
+            if path[template_position][feat_position] == 0:
+                align_results.append(template[template_position])
+            else:
+                template_position -= 1
+                align_results.append(template[template_position])
+            feat_position -= 1
+        return align_results[::-1]
+
 
     # dp with optional silence
     def AlginOptionalSilence(self, post_probs, template):
@@ -230,13 +281,18 @@ class Score():
                 template_position -= 2
                 align_results.append(template[template_position])
             feat_position -= 1
+
         return align_results[::-1]
 
     def Align(self, post_probs, t2p):
         try:
             aligned_result_iner = self.AlginOptionalSilence(post_probs, t2p)
+          #  aligned_result_iner = self.AlginFixedSilence(post_probs, t2p)
         except:
             print('error on this text!')
+
+      #  aligned_result_iner = self.AlginOptionalSilence_v2(post_probs, t2p)
+      #  aligned_result_iner = self.AlginFixedSilence(post_probs, t2p)
 
         return aligned_result_iner
 
@@ -371,11 +427,12 @@ if __name__ == "__main__":
     parser.add_argument('--version', type=bool, default = False, help='Version 1 or 2')
     args = parser.parse_args()
 
-    text = "hello, how are you doing?"
+   # text = "hello, how are you doing?"
+    text = "I have to study for my AP Calculus test."
     audio = '/home/nan/CALL-proto/Fun-emes/django_project/microphone-results.wav'
-    print (args.version)
     Score_test = Score(args.lexiconaddr, args.phonesaddr, args.sr, args.kaldi_workspace, args.utt_id, args.version)
    # score_output, utt_id = Score_test.CalcScores(audio, text)
     score_output = Score_test.CalcScores(audio, text, args.version)
     wav_id = PackZero(args.utt_id, 6)
-    json.dump(score_output, open("/home/nan/CALL-proto/Fun-emes/django_project/score_wav%s.json"%wav_id, "w", encoding="utf-8"))
+#### should remove test_
+    json.dump(score_output, open("/home/nan/CALL-proto/Fun-emes/django_project/test_score_wav%s.json"%wav_id, "w", encoding="utf-8"))
