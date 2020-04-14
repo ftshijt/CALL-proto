@@ -9,8 +9,8 @@ import numpy as np
 import torch
 import time
 from model.gpu_util import use_single_gpu
-from model.SVSDataset import SVSDataset, SVSCollator
-from model.network import GLU_Transformer
+from model.duration_dataset import DurationDataset, DurationCollator
+from model.network import TransformerDuration
 from model.transformer_optim import ScheduledOptim
 from model.loss import MaskedLoss
 from model.utils import train_one_epoch, save_checkpoint, validate, record_info
@@ -28,10 +28,10 @@ def train(args):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    train_set = DurationDataset(duration_file=args.train_duration_file,
+    train_set = DurationDataset(duration_file=args.train,
     	                     max_len=args.max_len)
 
-    dev_set = DurationDataset(duration_file=args.val_duration_file,
+    dev_set = DurationDataset(duration_file=args.val,
     	                     max_len=args.max_len)
 
     collate_fn = DurationCollator(args.max_len)

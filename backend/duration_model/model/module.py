@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020 The Johns Hopkins University (author: Jiatong Shi, Hailan Lin)
+# Copyright 2020 The Johns Hopkins University (author: Jiatong Shi)
 
 import torch
 import torch.nn as nn

@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020 The Johns Hopkins University (author: Jiatong Shi, Hailan Lin)
-
-# debug only
-import sys
-sys.path.append("/Users/jiatongshi/projects/svs_system/SVS_system")
+# Copyright 2020 The Johns Hopkins University (author: Jiatong Shi)
 
 import torch
 import torch.nn as nn
@@ -12,7 +8,7 @@ import numpy as np
 import math
 import model.module as module
 from torch.nn.init import xavier_uniform_
-
+from torch.nn import Module
 
 class TransformerDuration(Module):
     """Transformer encoder based diarization model.
@@ -26,7 +22,7 @@ class TransformerDuration(Module):
     """
 
     def __init__(self, embed_size=512, d_model=512, d_output=1,
-                 nhead=4, num_block=6, phone_size
+                 nhead=4, num_block=6, phone_size=87,
                  dim_feedforward=2048, dropout=0.1, pos_enc=True,
                  ):
         super(TransformerDuration, self).__init__()

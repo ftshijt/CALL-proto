@@ -42,6 +42,9 @@ def refine_duration_data(info):
 	input_info = []
 	output_info = []
 	for utt in info:
+                utt = utt.strip()
+                if len(utt) < 1:
+                    continue
 		utt = utt.split(" ")
 		head = utt[0]
 		data = list(map(int, utt[1:]))
