@@ -11,98 +11,67 @@ import torch.nn as nn
 import numpy as np
 import math
 import model.module as module
+from torch.nn.init import xavier_uniform_
 
 
-class Encoder(nn.Module):
+class TransformerDuration(Module):
+    """Transformer encoder based diarization model.
+    Args:
+        d_model: the number of expected features in the encoder/decoder inputs.
+        nhead: the number of heads in the multiheadattention models.
+        num_encoder_layers: the number of sub-encoder-layers in the encoder.
+        dim_feedforward: the dimension of the feedforward network model.
+        dropout: the dropout value.
+        pos_enc: True if positional encoding is used.
     """
-    Encoder Network
-    """
-    def __init__(self, phone_size, embed_size, hidden_size, dropout, GLU_num, num_layers=1, glu_kernel=3):
-        """
-        :param para: dictionary that contains all parameters
-        """
-        super(Encoder, self).__init__()
-        
-        self.emb_phone = nn.Embedding(phone_size, embed_size)
-        #full connected
-        self.fc_1 = nn.Linear(embed_size, hidden_size)
-        
-        self.GLU_list = nn.ModuleList()
-        for i in range(int(GLU_num)):
-            self.GLU_list.append(module.GLU(num_layers, hidden_size, glu_kernel, dropout, hidden_size))
-        #self.GLU = module.GLU(num_layers, hidden_size, glu_kernel, dropout, hidden_size)
-        
-        self.fc_2 = nn.Linear(hidden_size, embed_size)
-    
 
-    def forward(self, text_phone):
-        """
-        text_phone dim: [batch_size, text_phone_length]
-        output dim : [batch_size, text_phone_length, embedded_dim]
-        """
-        embedded_phone = self.emb_phone(text_phone)
-        glu_in = self.fc_1(embedded_phone)
-        
-        batch_size = glu_in.shape[0]
-        text_phone_length = glu_in.shape[1]
-        embedded_dim = glu_in.shape[2]
-        
-        for glu in self.GLU_list:
-            glu_out = glu(glu_in)
-            glu_in = glu_out.reshape(batch_size, text_phone_length, embedded_dim)
-        
-        glu_out = self.fc_2(glu_in)
-        
-        out = embedded_phone + glu_out
-        
-        out = out * math.sqrt(0.5)
-        return out, text_phone
+    def __init__(self, embed_size=512, d_model=512, d_output=1,
+                 nhead=4, num_block=6, phone_size
+                 dim_feedforward=2048, dropout=0.1, pos_enc=True,
+                 ):
+        super(TransformerDuration, self).__init__()
 
+        self.input_embed = nn.Embedding(embed_size, phone_size)
+        self.input_fc = nn.Linear(embed_size, d_model)
+        self.speed_fc = nn.Linear(1, d_model)
+        self.pos_encoder = module.PositionalEncoding(d_model, dropout)
+        encoder_layer = module.TransformerEncoderLayer(
+            d_model, nhead, dim_feedforward, dropout)
+        self.input_norm = LayerNorm(d_model)
+        encoder_norm = LayerNorm(d_model)
+        self.encoder = module.TransformerEncoder(
+            encoder_layer, num_encoder_layers, encoder_norm)
+        self.output_fc = Linear(d_model, d_output)
 
-    
-    
-class Decoder(nn.Module):
-    """
-    Decoder Network
-    """
-    # TODO： frame smoothing (triple the time resolution)
-    def __init__(self, num_block, hidden_size, output_dim, nhead=4, dropout=0.1, activation="relu",
-        glu_kernel=3):
-        super(Decoder, self).__init__()
-        self.input_norm = module.LayerNorm(hidden_size)
-        decoder_layer = module.TransformerGLULayer(hidden_size, nhead, dropout, activation,
-            glu_kernel)
-        self.decoder = module.TransformerEncoder(decoder_layer, num_block)
-        self.output_fc = nn.Linear(hidden_size, output_dim)
+        self._reset_parameters()
 
-        self.hidden_size=hidden_size
+        self.d_model = d_model
+        self.nhead = nhead
+        self.pos_enc = pos_enc
 
-    def forward(self, src, src_mask=None, src_key_padding_mask=None):
-        src = self.input_norm(src)
-        memory, att_weight = self.decoder(src, mask=src_mask, src_key_padding_mask=src_key_padding_mask)
+    def forward(self, src, speed, src_mask=None,
+                src_key_padding_mask=None):
+        embed = self.input_embed(src)
+        embed = self.input_fc(embed)
+        speed = self.speed_fc(embed)
+        embed = torch.cat((embed, speed), 1)
+        embed = self.input_norm(embed)
+        if self.pos_enc:
+            embed, att = self.encoder(embed) * math.sqrt(self.d_model)
+            embed = self.pos_encoder(embed)
+        memory, att = self.encoder(
+            embed,
+            mask=src_mask,
+            src_key_padding_mask=src_key_padding_mask)
         output = self.output_fc(memory)
-        return output, att_weight
+        return output, att
 
-class GLU_Transformer(nn.Module):
-    """
-    Transformer Network
-    """
-    def __init__(self, phone_size, embed_size, hidden_size, glu_num_layers, dropout, dec_num_block,
-                 dec_nhead, output_dim):
-        super(GLU_Transformer, self).__init__()
-        self.encoder = Encoder(phone_size, embed_size, hidden_size, dropout, glu_num_layers,
-                               num_layers=1, glu_kernel=3)
-        self.enc_postnet = Encoder_Postnet(embed_size)
-        self.decoder = Decoder(dec_num_block, embed_size, output_dim, dec_nhead, dropout)
-        # self.postnet = module.PostNet(output_dim, output_dim, output_dim)
+    def _reset_parameters(self):
+        """Initiate parameters in the transformer model."""
 
-    def forward(self, characters, phone, pitch, beat, pos_text=True, src_key_padding_mask=None,
-                char_key_padding_mask=None):
-        encoder_out, text_phone = self.encoder(characters.squeeze(2))
-        post_out = self.enc_postnet(encoder_out, phone, text_phone, pitch.float(), beat)
-        mel_output, att_weight = self.decoder(post_out)
-        # mel_output = self.postnet(mel_output)
-        return mel_output
+        for p in self.parameters():
+            if p.dim() > 1:
+                xavier_uniform_(p)
 
 
 def create_src_key_padding_mask(src_len, max_len):
