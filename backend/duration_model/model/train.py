@@ -29,10 +29,10 @@ def train(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_set = DurationDataset(duration_file=args.train,
-    	                     max_len=args.max_len)
+                             max_len=args.max_len)
 
     dev_set = DurationDataset(duration_file=args.val,
-    	                     max_len=args.max_len)
+                             max_len=args.max_len)
 
     collate_fn = DurationCollator(args.max_len)
     train_loader = torch.utils.data.DataLoader(dataset=train_set,
@@ -51,7 +51,7 @@ def train(args):
     # prepare model
     if args.model_type == "Transformer":
         model = TransformerDuration(dim_feedforward=args.dim_feedforward,
-        	                    phone_size=args.phone_size,
+                                phone_size=args.phone_size,
                                 embed_size=args.embedding_size,
                                 d_model=args.hidden_size,
                                 dropout=args.dropout,

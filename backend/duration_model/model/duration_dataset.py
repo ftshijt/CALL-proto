@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2020 The Johns Hopkins University (author: Jiatong Shi, Shuai Guo)
+# Copyright 2020 The Johns Hopkins University (author: Jiatong Shi)
 
 from torch.utils.data import Dataset
 import numpy as np
@@ -39,45 +39,45 @@ class DurationCollator(object):
 
 
 def refine_duration_data(info):
-	input_info = []
-	output_info = []
-	for utt in info:
+    input_info = []
+    output_info = []
+    for utt in info:
                 utt = utt.strip()
                 if len(utt) < 1:
                     continue
-		utt = utt.split(" ")
-		head = utt[0]
-		data = list(map(int, utt[1:]))
-		utt_input = []
-		utt_output = []
-		# remove silence
-		while data[0] == 1:
-			data.pop(0)
-		while data[-1] == 1:
-			data.pop(-1)
-		pre = -1
-		num_fram = 1
-		for frame in data:
-			if frame != pre:
-				pre = frame
-				utt_input.append(frame)
-				utt_output.append(1)
-			else:
-				utt_output[-1] += 1
-		input_info.append(utt_input)
-		output_info.append(utt_output)
-	return input_info, output_info
+        utt = utt.split(" ")
+        head = utt[0]
+        data = list(map(int, utt[1:]))
+        utt_input = []
+        utt_output = []
+        # remove silence
+        while data[0] == 1:
+            data.pop(0)
+        while data[-1] == 1:
+            data.pop(-1)
+        pre = -1
+        num_fram = 1
+        for frame in data:
+            if frame != pre:
+                pre = frame
+                utt_input.append(frame)
+                utt_output.append(1)
+            else:
+                utt_output[-1] += 1
+        input_info.append(utt_input)
+        output_info.append(utt_output)
+    return input_info, output_info
 
 
 class DurationDataset(Dataset):
-	def __init__(self, duration_file, max_len=100):
-		duration_file = open(duration_file, "r")
-		info = duration_file.read().split("\n")
-		input_info, output_info = refine_duration_data(info)
+    def __init__(self, duration_file, max_len=100):
+        duration_file = open(duration_file, "r")
+        info = duration_file.read().split("\n")
+        input_info, output_info = refine_duration_data(info)
 
-	def __len__(self):
-		return len(input_info)
+    def __len__(self):
+        return len(input_info)
 
-	def __getitem__(self, i):
-		return input_info[i], output_info[i]
+    def __getitem__(self, i):
+        return input_info[i], output_info[i]
 
