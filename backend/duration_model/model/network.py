@@ -8,7 +8,7 @@ import numpy as np
 import math
 import model.module as module
 from torch.nn.init import xavier_uniform_
-from torch.nn import Module
+from torch.nn import Module, LayerNorm, Linear, Dropout
 
 class TransformerDuration(Module):
     """Transformer encoder based diarization model.
@@ -36,7 +36,7 @@ class TransformerDuration(Module):
         self.input_norm = LayerNorm(d_model)
         encoder_norm = LayerNorm(d_model)
         self.encoder = module.TransformerEncoder(
-            encoder_layer, num_encoder_layers, encoder_norm)
+            encoder_layer, num_block, encoder_norm)
         self.output_fc = Linear(d_model, d_output)
 
         self._reset_parameters()
@@ -50,7 +50,7 @@ class TransformerDuration(Module):
         embed = self.input_embed(src)
         embed = self.input_fc(embed)
         speed = self.speed_fc(embed)
-        embed = torch.cat((embed, speed), 1)
+        embed = embed + speed
         embed = self.input_norm(embed)
         if self.pos_enc:
             embed, att = self.encoder(embed) * math.sqrt(self.d_model)
@@ -68,14 +68,6 @@ class TransformerDuration(Module):
         for p in self.parameters():
             if p.dim() > 1:
                 xavier_uniform_(p)
-
-
-def create_src_key_padding_mask(src_len, max_len):
-    bs = len(src_len)
-    mask = np.zeros((bs, max_len))
-    for i in range(bs):
-        mask[i, src_len[i]:] = 1
-    return torch.from_numpy(mask).float()
 
 
 def _test():

@@ -26,7 +26,7 @@ class DurationCollator(object):
             length = min(len_list[i], self.max_len)
             phone[i, :length] = batch[i][0][:length]
             duration[i, :length] = batch[i][1][:length]
-            mean_list.append(mean(batch[i][1][:length]))
+            mean_list.append(np.mean(batch[i][1][:length]))
 
         length = np.array(len_list)
         mean_list = np.array(mean_list)
@@ -42,17 +42,23 @@ def refine_duration_data(info):
     input_info = []
     output_info = []
     for utt in info:
-                utt = utt.strip()
-                if len(utt) < 1:
-                    continue
+        utt = utt.strip()
+        if len(utt) < 1:
+            continue
         utt = utt.split(" ")
         head = utt[0]
         data = list(map(int, utt[1:]))
         utt_input = []
         utt_output = []
+        
         # remove silence
         while data[0] == 1:
             data.pop(0)
+            if len(data) < 1:
+                break
+        if len(data) < 1:
+            continue
+        
         while data[-1] == 1:
             data.pop(-1)
         pre = -1
@@ -72,12 +78,12 @@ def refine_duration_data(info):
 class DurationDataset(Dataset):
     def __init__(self, duration_file, max_len=100):
         duration_file = open(duration_file, "r")
-        info = duration_file.read().split("\n")
-        input_info, output_info = refine_duration_data(info)
+        info = duration_file.read().split("\n")[:640]
+        self.input_info, self.output_info = refine_duration_data(info)
 
     def __len__(self):
-        return len(input_info)
+        return len(self.input_info)
 
     def __getitem__(self, i):
-        return input_info[i], output_info[i]
+        return self.input_info[i], self.output_info[i]
 

@@ -45,7 +45,7 @@ def train(args):
                                                batch_size=args.batchsize,
                                                shuffle=True,
                                                num_workers=args.num_workers,
-                                               collate_fn=collate,
+                                               collate_fn=collate_fn,
                                                pin_memory=True)
 
     # prepare model

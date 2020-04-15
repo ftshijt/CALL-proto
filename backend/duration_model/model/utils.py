@@ -17,7 +17,7 @@ def create_src_key_padding_mask(src_len, max_len):
     bs = len(src_len)
     mask = np.zeros((bs, max_len))
     for i in range(bs):
-        mask[i, src_len[i]:] = 1
+        mask[i, :src_len[i]] = 1
     return torch.from_numpy(mask).float()
 
 
@@ -31,14 +31,12 @@ def train_one_epoch(train_loader, model, device, optimizer, criterion, args):
         duration = duration.to(device)
         length = length.to(device).long()
         length_mask = create_src_key_padding_mask(length, args.max_len)
-        length_mask = length_mask.unsqueeze(2)
-        length_mask = length_mask.repeat(1, 1, spec.shape[2]).float()
         length_mask = length_mask.to(device)
         length = length.to(device)
 
         output = model(phone, mean_list, src_key_padding_mask=length)
 
-        train_loss = criterion(output, spec, length_mask)
+        train_loss = criterion(output, duration, length_mask)
 
         optimizer.zero_grad()
         train_loss.backward()
@@ -59,22 +57,17 @@ def validate(dev_loader, model, device, criterion, args):
     model.eval()
 
     with torch.no_grad():
-        for step, (phone, beat, pitch, spec, length, chars, char_len_list) in enumerate(dev_loader, 1):
+        for step, (phone, mean_list, duration, length) in enumerate(dev_loader, 1):
             phone = phone.to(device)
-            beat = beat.to(device)
-            pitch = pitch.to(device).float()
-            spec = spec.to(device).float()
-            chars = chars.to(device)
-            length = length.to(device)
+            mean_list = mean_list.to(device).float()
+            duration = duration.to(device)
+            length = length.to(device).long()
             length_mask = create_src_key_padding_mask(length, args.max_len)
-            length_mask = length_mask.unsqueeze(2)
-            length_mask = length_mask.repeat(1, 1, spec.shape[2]).float()
             length_mask = length_mask.to(device)
-            char_len_list = char_len_list.to(device).float()
+            length = length.to(device)
 
-            output = model(chars, phone, pitch, beat, src_key_padding_mask=length)
-
-            val_loss = criterion(output, spec, length_mask)
+            output = model(phone, mean_list, src_key_padding_mask=length)
+            val_loss = criterion(output, duration, length_mask)
             losses.update(val_loss.item(), phone.size(0))
             if step % 1000 == 0:
                 print("step {}: {}".format(step, losses.avg))

@@ -4,5 +4,7 @@
 
 . ./path.sh
 
+CUDA_VISIBLE_DEVICES=1
+
 python bin/train.py -c conf/train.yaml
 

@@ -5,9 +5,9 @@
 import yamlargparse
 
 import sys
-sys.path.append("/export/c04/jiatong/project/svs/SVS_system")
+sys.path.append("/export/c04/jiatong/project/ai_system/CALL-proto/backend/duration_model")
 
-parser = yamlargparse.ArgumentParser(description='SVS training')
+parser = yamlargparse.ArgumentParser(description='Duration training')
 parser.add_argument('-c', '--config', help='config file path',
                     action=yamlargparse.ActionConfigFile)
 parser.add_argument('--train',
@@ -32,8 +32,6 @@ parser.add_argument('--gradclip', default=-1, type=int,
                     help='gradient clipping. if < 0, no clipping')
 parser.add_argument('--max_len', default=100, type=int,
                     help='number of frames in one utterance')
-parser.add_argument('--char_max_len', default=500, type=int,
-                    help='max length for character')
 parser.add_argument('--batchsize', default=1, type=int,
                     help='number of utterances in one batch')
 parser.add_argument('--num_workers', default=4, type=int,
@@ -57,9 +55,6 @@ parser.add_argument('--use-pos-enc', default=0, type=int)
 parser.add_argument('--gradient-accumulation-steps', default=1, type=int)
 
 args = parser.parse_args()
-
-import system_info
-system_info.print_system_info()
 
 print(args)
 from model.train import train
