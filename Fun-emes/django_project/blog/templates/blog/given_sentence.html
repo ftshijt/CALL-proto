@@ -29,15 +29,208 @@ select {
 	width: 200px;
 }
 
+hr { 
+	display: block;
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+	margin-left: auto;
+	margin-right: auto;
+	border-style: inset;
+	border-width: 1px;
+} 
+
+
+input[type=text]{
+	width: 30%;
+	padding: 6px 20px;
+	margin: 8px 0;
+	display: inline-block;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+input[type=submit] {
+	width: 15%;
+	background-color: #D3D3D3;
+	color: black;
+	padding: 6px 20px;
+	margin-left: 30px;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+input[type=submit]:hover {
+	background-color: #A9A9A9;
+}
+
+button {
+	margin: auto;
+	background-color: #D3D3D3;
+	color: black;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+button:hover {
+	background-color: #A9A9A9;
+}
+
 /* ID-based styling */
 #col1 {
 	float: left;
-  	width: 20.00%;
+	width: 20.00%;
 }
 
 #col2 {
 	float: left;
 	width: 80.00%;
+}
+
+/* classname-based styling */
+.lower_button {
+	display: none;
+	margin: auto;
+}
+
+.select-css {
+	display: block;
+	font-size: 16px;
+	font-family: sans-serif;
+	font-weight: 700;
+	color: #444;
+	line-height: 1.3;
+	padding: .6em 1.4em .5em .8em;
+	width: 50%;
+	max-width: 50%;
+	box-sizing: border-box;
+	margin: 0;
+	border: 1px solid #aaa;
+	box-shadow: 0 1px 0 1px rgba(0,0,0,.04);
+	border-radius: .5em;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	appearance: none;
+	background-color: #fff;
+	background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'),
+	  linear-gradient(to bottom, #ffffff 0%,#e5e5e5 100%);
+	background-repeat: no-repeat, repeat;
+	background-position: right .7em top 50%, 0 0;
+	background-size: .65em auto, 100%;
+}
+
+.select-css::-ms-expand {
+	display: none;
+}
+.select-css:hover {
+	border-color: #888;
+}
+.select-css:focus {
+	border-color: #aaa;
+	box-shadow: 0 0 1px 3px rgba(59, 153, 252, .7);
+	box-shadow: 0 0 0 3px -moz-mac-focusring;
+	color: #222;
+	outline: none;
+}
+.select-css option {
+	font-weight:normal;
+}
+
+/*#average {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#recordButton {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}*/
+
+/* Popup container - can be anything you want */
+.popup {
+  position: relative;
+/*  display: inline-block;*/
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+/*  margin-left: auto;
+  margin-right: auto;*/
+}
+
+/* The actual popup */
+.popup .popuptext {
+  visibility: hidden;
+  width: 160px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 8px 0;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -80px;
+}
+
+/* Popup arrow */
+.popup .popuptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+/* Toggle this class - hide and show the popup */
+.popup .show {
+  visibility: visible;
+  -webkit-animation: fadeIn 1s;
+  animation: fadeIn 1s;
+}
+
+/* Add animation (fade in the popup) */
+@-webkit-keyframes fadeIn {
+  from {opacity: 0;} 
+  to {opacity: 1;}
+}
+
+@keyframes fadeIn {
+  from {opacity: 0;}
+  to {opacity:1 ;}
+}
+
+
+.rating {
+  unicode-bidi: bidi-override;
+  direction: rtl;
+}
+
+.rating > p {
+	display: inline-block;
+	font-size :14px;
+	width: 80px;
+}
+
+.rating > span {
+  display: inline-block;
+  position: relative;
+  font-size: 18px;
+  width: 1.1em;
+}
+.rating > span:hover:before,
+.rating > span:hover ~ span:before {
+   content: "\2605";
+   position: absolute;
 }
 
 </style>
@@ -92,7 +285,7 @@ select {
 			// Working employee
 			sentence = "This is a presentation to inform about how our project is applicable for certain aspects of company growth."
 		}
-		else if (occupationID === "ID013" && scenarioID === "ID014") {
+		else if (occupationID === "ID005" && scenarioID === "ID013") {
 			// Middle-aged person needing medical assistance
 			sentence = "Do you know where the Emergency Room is located?"
 		}
@@ -102,12 +295,11 @@ select {
 
 		// update the input in the form so that it can be passed to python
 		document.getElementById("sentence").value = sentence;
-
 		sentence = sentence.split(" ");
 		// clears spans elements if there are any 
 		var list = document.getElementById('display');
 		while (list.hasChildNodes()) {  
-  			list.removeChild(list.firstChild);
+			list.removeChild(list.firstChild);
 		}
 
 		// add words to parent element one by one
@@ -115,41 +307,105 @@ select {
 			if (i != sentence.length-1) {
 				sentence[i] += " ";
 			}
-			var newSpan = document.createElement('span');
+			var newSpan = document.createElement('spans');
 			newSpan.textContent = sentence[i];
 			list.appendChild(newSpan);
 		}
+
+		document.getElementById("repeat").style.display = "block";
+		document.getElementById("record_button").style.display = "block";
 	}
 
 	// Evaluate Button
 	function ScoreSentence() {
-		// process scored data passed from python
-		var score = JSON.parse("{{ score | escapejs }}");
+		var score;
+		var occupationID = GetOccupation();
+		var scenarioID = GetScenario();
+		console.log(clicked);
 
-		var spans = document.getElementById('display').childNodes;
-
-		// loop through the JSON words, color each word in the sentence by score
-		for (i=0; i<score.words.length;i++) {
-			spans[i].style.color = ChangeColor(score.words[i].score);
+		if (occupationID === "ID002" && scenarioID === "ID008") { 
+			// Middle School Student
+			sentence = "Do you want to go play basketball or soccer together?"
 		}
+		else if (occupationID === "ID001" && scenarioID === "ID008") {
+			// Elementary student
+			score = JSON.parse("{{ elementary | escapejs }}");
+		}
+		else if (occupationID === "ID003" && scenarioID === "ID008") {
+			// High School Student
+			if (clicked == 1) {
+				score = JSON.parse("{{ highschool1 | escapejs }}");
+			}
+			else if (clicked == 2) {
+				score = JSON.parse("{{ highschool2 | escapejs }}");
+			}
+			else {
+				score = JSON.parse("{{ highschool3 | escapejs }}");
+			}
+		}
+		else if (occupationID === "ID005" && scenarioID === "ID010") {
+			// Working employee
+			sentence = "This is a presentation to inform about how our project is applicable for certain aspects of company growth."
+		}
+		else if (occupationID === "ID005" && scenarioID === "ID013") {
+			// Middle-aged person needing medical assistance
+			score = JSON.parse("{{ hospital | escapejs }}");
+		}
+		else {
+			
+		}
+		console.log(score);
+		console.log(score.text);
+		// process scored data passed from python
+		var spans = document.getElementById('display').childNodes;
+		// loop through the JSON words, color each word in the sentence by score
+		var total_score = 0;
+		for (i=0; i<spans.length;i++) {
+			var childSpan = document.createElement('spans');
+			childSpan.setAttribute('class', "popuptext");
+			childSpan.setAttribute('id', String(i));
+			var all_phones = [];
+			var phones = score.words[i].phones;
+			for (var j=0; j < phones.length; j++) {
+				all_phones.push(phones[j].phone);
+			}
+			childSpan.textContent = all_phones.join('-');
+			spans[i].appendChild(childSpan);
+			spans[i].setAttribute('id', "p" + String(i));
+			spans[i].setAttribute('class', "popup");
+			spans[i].setAttribute('onclick', "getPhonemes(this.id)");
+			spans[i].style.color = ChangeColor(score.words[i].score);
+			total_score += score.words[i].score;
+		}
+
+		var avg_score = total_score / score.words.length;
+		average.innerText = Math.round(avg_score);
+		average.style.color = ChangeColor(avg_score);
+
+		// show toggle for extra information
+		document.getElementById("resultPopUp").style.display = "block";
+		var otherInfo = 'pronunciation: ';
+		var otherInfo = otherInfo.concat(score.pronunciation, '\n','fluency: ',score.fluency);
+		document.getElementById("otherInfo").textContent = otherInfo;	
 	}
 
 	function ChangeColor(score) {
 		if (score <= 50) {
-			return "red";
+			return "crimson";
 		}
 		else if (score <= 75) {
-			return "yellow";
+			return "orange";
 		}
 		else {
 			return "green";
 		}
 	}
-
 </script>
 
-<p>To gauge your environment and give you sentences like you will more likely encounter, please tell us your occupation: </p>
-<select id="environment">
+<h1>Welcome to Scenario Practice</h1>
+<br/>
+<p>First, to gauge your environment and give you sentences like you will more likely encounter, please tell us your occupation: </p>
+<select class="select-css" id="environment">
 	<option value="None">-- Select --</option>
 	<option value="ID001">Elementary School</option>
 	<option value="ID002">Middle School</option>
@@ -160,9 +416,15 @@ select {
 	<option value="ID007">Retired</option>
 </select>
 <br/>
+<form>
+<input type="text" id="lname" name="lastname" placeholder="Add an occupation">
+<input type="submit" value="Submit">
+</form>
 <br/>
-<p>And now, please tell us the scenario that you wish to prepare for: </p>
-<select id="scenario">
+<br/>
+<p>And now, please tell us the scenario
+ that you wish to prepare for: </p>
+<select class="select-css" id="scenario">
 	<option value="None">-- Select --</option>
 	<option value="ID008" selected>Classroom (student)</option>
 	<option value="ID009">Classroom (teacher)</option>
@@ -172,8 +434,12 @@ select {
 	<option value="ID013">Hospital</option>
 	<option value="ID014">Social</option>
 </select>
-
 <br/>
+<form>
+<input type="text" id="lname" name="lastname" placeholder="Add a scenario">
+<input type="submit" value="Submit">
+</form>
+
 <br/>
 <br/>
 <button class="sentence_btn" style="width:170px;height:30px;" onclick="GenerateSentence('clicked')">Generate Sentence</button>
@@ -181,13 +447,13 @@ select {
 <br/>
 <br/>
 
-<p>Repeat After Me...</p>
+<h3 id="repeat" style="display: none;">Repeat After Me...</h3>
 <div class="row">
 	<div class="column" id="col1">
 
 	</div>
 	<div class="column" id="col2">
-		<h3 id='display'></h3>
+		<p id='display' style="font-size: 26px;"></p>
 	</div>
 </div>
 
@@ -199,15 +465,16 @@ select {
 <br/>
 
 <div class="row">
-  <div class="column" style="width:33.33%;">
-    <form method="post">
-    		{% csrf_token %}
-    	<input type="hidden" id="sentence" name="text">
-    	<input type="hidden" id="count" name="count">
-		<input type="hidden" name="record">
-		<button class="button button5" style="width:80px;height:30px">Record</button>
-	</form>
-		<h> {{data}}</h1>		
+	<div class="column" style="width:33.33%;">
+		<div style="display:block;margin:auto;width:80px;height:30px;">
+			<form method="post">
+				{% csrf_token %}
+				<input type="hidden" id="sentence" name="text">
+				<input type="hidden" name="record" >
+				<button id="record_button" style="width:80px;height:30px;display:none;">Record</button>
+			</form>	
+		</div>
+	</div>
 <!-- 		<br/>
 		<br/>		
 		<button class="play_btn" style="width:170px;height:30px;">Play Your Audio</button>
@@ -216,26 +483,141 @@ select {
 		<button class="record_btn" style="width:170px;height:30px;">Record Again</button>		
 		<br/>
 		<br/> -->
-  </div>
-  <div class="column" style="width:33.33%;">
-  </div>
-  <div class="column" style="width:33.33%;">
-    <button class="score_btn" onclick="ScoreSentence()" style="width:170px;height:30px;">Evaluate</button>		
-	<br/>
-	<br/>
-  </div>
+	<div class="column" style="width:33.33%;">
+		<div class="lower_button" style="width:60px;height: 60px;display:block;">
+			<h2 id="average"></h2>
+		</div>
+		<br/>
+		<div class="lower_button" style="width:180px;height:30px;display:block;">
+			<div class="popup" onclick="getOtherInfo()" id="resultPopUp" style="text-decoration: underline; font-size: 16px; font-weight: bold; color: #2E8B57; display: none;">Click to View Details
+				<span class="popuptext" id="otherInfo"></span>
+			</div>
+		</div>
+	</div>
+	<div class="column" style="width:33.33%;">
+		<button class="lower_button" id="evaluate_button" onclick="ScoreSentence()" style="width:170px;height:30px;">Evaluate</button>
+		<br/>
+		<br/>
+		<button class="lower_button" id="history_button" onclick="window.location.href = 'http://localhost:8000/fun-emes/profile/';" style="width:240px;height:30px;">Check Out Your History</button>
+		<br/>
+	</div>
 </div>
 
+<br/>
+<hr>
+<br/>
 
+<div class="row">
+	<div class="column" style="display: block;margin: auto; text-align: center;">
+		<h3>Was this Feature Helpful?</h3>
+		<div class="rating" id="stars">
+			<p>Very helpful</p>
+			<span id='star5' onclick="getStars(this.id)">☆</span>
+			<span id='star4' onclick="getStars(this.id)">☆</span>
+			<span id='star3' onclick="getStars(this.id)">☆</span>
+			<span id='star2' onclick="getStars(this.id)">☆</span>
+			<span id='star1' onclick="getStars(this.id)">☆</span>
+			<p>Not helpful</p>
+		</div>
+		<div class="lower_button" style="width:180px;height:30px;display:block;">
+			<div class="popup" onclick="getSubmitConfirm()" id="submit" style="font-size: 16px;">Submit
+				<span class="popuptext" id="submitConfirm">Thank you for your feedback!</span>
+			</div>
+		</div>
+	</div>
+	<a href="{% url 'feedback' %}" style="">Write To Us</a>
+</div>
+
+<!-- <script type="text/javascript">
+	$(document).ready(function(){
+	// Check Radio-box
+	$(".rating input:radio").attr("checked", false);
+
+	$('.rating input').click(function () {
+		$(".rating span").removeClass('checked');
+		$(this).parent().addClass('checked');
+	});
+
+	$('input:radio').change(
+	  function(){
+		var userRating = this.value;
+		alert(userRating);
+	}); 
+});
+</script>
+<style>
+.rating {
+	float:left;
+	width:300px;
+}
+.rating span { float:right; position:relative; }
+.rating span input {
+	position:absolute;
+	top:0px;
+	left:0px;
+	opacity:0;
+}
+.rating span label {
+	display:inline-block;
+	width:30px;
+	height:30px;
+	text-align:center;
+	color:#FFF;
+	background:#ccc;
+	font-size:30px;
+	margin-right:2px;
+	line-height:30px;
+	border-radius:50%;
+	-webkit-border-radius:50%;
+}
+.rating span:hover ~ span label,
+.rating span:hover label,
+.rating span.checked label,
+.rating span.checked ~ span label {
+	background:#F90;
+	color:#FFF;
+}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<div class="rating">
+	<span><input type="radio" name="rating" id="str5" value="5"><label for="str5"></label></span>
+	<span><input type="radio" name="rating" id="str4" value="4"><label for="str4"></label></span>
+	<span><input type="radio" name="rating" id="str3" value="3"><label for="str3"></label></span>
+	<span><input type="radio" name="rating" id="str2" value="2"><label for="str2"></label></span>
+	<span><input type="radio" name="rating" id="str1" value="1"><label for="str1"></label></span>
+</div> -->
 
 <script>
+// When the user clicks on div, open the popup
+function getOtherInfo() {
+  var popup = document.getElementById("otherInfo");
+  popup.classList.toggle("show");
+}
+
+function getSubmitConfirm() {
+  var popup = document.getElementById("submitConfirm");
+  popup.classList.toggle("show");
+}
+
+function getPhonemes(parent_id) {
+	var child_id = parent_id.substring(1);
+	var popup = document.getElementById(child_id);
+	popup.classList.toggle("show");
+}
+
+function getStars(id) {
+	console.log(id.substring(4));
+}
+
+</script>
+<script>
+	var score = JSON.parse("{{ highschool1 | escapejs }}");
 	var sentence = JSON.parse("{{ sentence | escapejs }}");
 	if (sentence !== null) {
-			console.log(sentence);
 			sentence = sentence.split(" ");
 			var list = document.getElementById('display');
 			while (list.hasChildNodes()) {  
-  				list.removeChild(list.firstChild);
+				list.removeChild(list.firstChild);
 			}
 
 			for(var i=0; i<sentence.length;i++) {
@@ -245,6 +627,11 @@ select {
 				var newSpan = document.createElement('span');
 				newSpan.textContent = sentence[i];
 				list.appendChild(newSpan);
+			}
+			document.getElementById("record_button").style.display = "block";
+			if (score !== null) {
+				document.getElementById("evaluate_button").style.display = "block";
+				document.getElementById("history_button").style.display = "block";
 			}
 		}
 		else {
