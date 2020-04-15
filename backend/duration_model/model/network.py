@@ -27,7 +27,7 @@ class TransformerDuration(Module):
                  ):
         super(TransformerDuration, self).__init__()
 
-        self.input_embed = nn.Embedding(embed_size, phone_size)
+        self.input_embed = nn.Embedding(phone_size, embed_size)
         self.input_fc = nn.Linear(embed_size, d_model)
         self.speed_fc = nn.Linear(1, d_model)
         self.pos_encoder = module.PositionalEncoding(d_model, dropout)
@@ -49,11 +49,12 @@ class TransformerDuration(Module):
                 src_key_padding_mask=None):
         embed = self.input_embed(src)
         embed = self.input_fc(embed)
-        speed = self.speed_fc(embed)
+        speed = self.speed_fc(speed)
         embed = embed + speed
         embed = self.input_norm(embed)
         if self.pos_enc:
-            embed, att = self.encoder(embed) * math.sqrt(self.d_model)
+            embed, att = self.encoder(embed)
+            embed = embed *  math.sqrt(float(self.d_model))
             embed = self.pos_encoder(embed)
         memory, att = self.encoder(
             embed,
