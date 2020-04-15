@@ -24,7 +24,7 @@ class TransformerDuration(Module):
     def __init__(self, embed_size=512, d_model=512, d_output=1,
                  nhead=4, num_block=6, phone_size=87,
                  dim_feedforward=2048, dropout=0.1, pos_enc=True,
-                 ):
+                 device="cuda"):
         super(TransformerDuration, self).__init__()
 
         self.input_embed = nn.Embedding(embed_size, phone_size)
@@ -32,7 +32,7 @@ class TransformerDuration(Module):
         self.speed_fc = nn.Linear(1, d_model)
         self.pos_encoder = module.PositionalEncoding(d_model, dropout)
         encoder_layer = module.TransformerEncoderLayer(
-            d_model, nhead, dim_feedforward, dropout)
+            d_model, nhead, dim_feedforward, dropout, device=device)
         self.input_norm = LayerNorm(d_model)
         encoder_norm = LayerNorm(d_model)
         self.encoder = module.TransformerEncoder(

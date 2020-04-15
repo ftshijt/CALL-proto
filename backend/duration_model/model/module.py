@@ -81,12 +81,13 @@ class MultiheadAttention(nn.Module):
       result : [batch_size, sequence length, d_model]
     """
 
-    def __init__(self, nheads, d_model):
+    def __init__(self, nheads, d_model, device="cuda"):
         "Take in model size and number of heads."
         super(MultiheadAttention, self).__init__()
         assert d_model % nheads == 0
         self.d_head = d_model // nheads
         self.nheads = nheads
+        self.device = device
         self.Q_fc = nn.Linear(d_model, d_model, bias=False)
         self.K_fc = nn.Linear(d_model, d_model, bias=False)
         self.V_fc = nn.Linear(d_model, d_model, bias=False)
@@ -109,7 +110,8 @@ class MultiheadAttention(nn.Module):
             key=key,
             value=value,
             unseen_mask=unseen_mask,
-            src_lengths=src_lengths
+            src_lengths=src_lengths,
+            device=self.device
         )
 
         # 5. Combine heads
@@ -130,9 +132,9 @@ class TransformerEncoderLayer(Module):
         activation: the activation function of intermediate layer, relu or gelu (default=relu).
     """
 
-    def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1, activation="relu"):
+    def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1, activation="relu", device="cuda"):
         super(TransformerEncoderLayer, self).__init__()
-        self.self_attn = MultiheadAttention(nhead, d_model)
+        self.self_attn = MultiheadAttention(nhead, d_model, device)
         # Implementation of Feedforward model
         self.linear1 = Linear(d_model, dim_feedforward)
         self.dropout = Dropout(dropout)
@@ -281,11 +283,11 @@ def create_src_lengths_mask(batch_size, src_lengths, max_srclen=None):
     return (src_indices < src_lengths).int().detach()
 
 
-def apply_masks(scores, batch_size, unseen_mask, src_lengths):
+def apply_masks(scores, batch_size, unseen_mask, src_lengths, device):
     seq_len = scores.shape[-1]
 
     # [1, seq_len, seq_len]
-    sequence_mask = torch.ones(seq_len, seq_len).unsqueeze(0).int()
+    sequence_mask = torch.ones(seq_len, seq_len).unsqueeze(0).int().to(device)
     if unseen_mask:
         # [1, seq_len, seq_len]
         sequence_mask = (
@@ -296,7 +298,7 @@ def apply_masks(scores, batch_size, unseen_mask, src_lengths):
         # [batch_size, 1, seq_len]
         src_lengths_mask = create_src_lengths_mask(
             batch_size=batch_size, src_lengths=src_lengths, max_srclen=seq_len
-        ).unsqueeze(-2)
+        ).unsqueeze(-2).to(device)
 
         # [batch_size, seq_len, seq_len]
         sequence_mask = sequence_mask & src_lengths_mask
@@ -308,7 +310,7 @@ def apply_masks(scores, batch_size, unseen_mask, src_lengths):
     return scores
 
 
-def scaled_dot_prod_attn(query, key, value, unseen_mask=False, src_lengths=None):
+def scaled_dot_prod_attn(query, key, value, unseen_mask=False, src_lengths=None, device="cuda"):
     """
     Scaled Dot Product Attention
     Implements equation:
@@ -331,6 +333,7 @@ def scaled_dot_prod_attn(query, key, value, unseen_mask=False, src_lengths=None)
             batch_size=query.shape[0],
             unseen_mask=unseen_mask,
             src_lengths=src_lengths,
+            device=device
         )
     p_attn = F.softmax(scores, dim=-1)
     return torch.matmul(p_attn, value), p_attn
