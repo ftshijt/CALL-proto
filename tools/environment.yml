@@ -17,3 +17,5 @@ dependencies:
     - yamlargparse
     - SpeechRecognition
     - pyaudio
+    - django
+

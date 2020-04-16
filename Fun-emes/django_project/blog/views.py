@@ -34,8 +34,10 @@ def audio(request):
     # get audio from the microphone
     r = sr.Recognizer()
     with sr.Microphone() as source:
+        r.adjust_for_ambient_noise(source) 
         print("Speak:")
         audio = r.listen(source)
+
 
     try:
         print(dir(audio))
