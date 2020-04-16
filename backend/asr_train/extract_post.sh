@@ -48,7 +48,7 @@ if [ ${stage} -le 3 ]; then
   echo ============================================================================
   
   for datadir in ${infer_set}; do
-   ${workspace}/steps/chain/get_phone_post.sh --nj $nj --remove-word-position-dependency true \
+   ${workspace}/steps/chain/get_phone_post.sh --nj $nj --stage 2 --remove-word-position-dependency true \
       --online-ivector-dir ${datadir}_ivector \
       ${workspace}/exp/chain/tree_sp/ ${workspace}/exp/chain/tdnn_1d_sp ${workspace}/data/lang_chain ${datadir}_hires ${datadir}_post
     # for jbs in $(seq 1 ${nj}); do
