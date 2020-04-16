@@ -78,7 +78,7 @@ def refine_duration_data(info):
 class DurationDataset(Dataset):
     def __init__(self, duration_file, max_len=100):
         duration_file = open(duration_file, "r")
-        info = duration_file.read().split("\n")[:640]
+        info = duration_file.read().split("\n")
         self.input_info, self.output_info = refine_duration_data(info)
 
     def __len__(self):

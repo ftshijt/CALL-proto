@@ -1,6 +1,7 @@
 train: /export/c04/jiatong/project/ai_system/CALL-proto/data/train_960.ali
 val: /export/c04/jiatong/project/ai_system/CALL-proto/data/dev_960.ali
-
+# train: /export/c04/jiatong/project/ai_system/CALL-proto/data/debug.ali
+# val: /export/c04/jiatong/project/ai_system/CALL-proto/data/debug.ali
 
 model_save_dir: exp/debug
 model_type: Transformer

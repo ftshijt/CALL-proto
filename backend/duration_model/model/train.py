@@ -47,7 +47,6 @@ def train(args):
                                                num_workers=args.num_workers,
                                                collate_fn=collate_fn,
                                                pin_memory=True)
-
     # prepare model
     if args.model_type == "Transformer":
         model = TransformerDuration(dim_feedforward=args.dim_feedforward,
@@ -109,12 +108,12 @@ def train(args):
         logger = None
 
     if args.loss == "l1":
-        loss = MaskedLoss(torch.nn.L1Loss())
+        loss = MaskedLoss("l1")
     elif args.loss == "mse":
-        loss = MaskedLoss(torch.nn.MSELoss())
+        loss = MaskedLoss("mse")
     else:
         raise ValueError("Not Support Loss Type")
-
+    
     # Training
     for epoch in range(1, 1 + args.max_epochs):
         start_t_train = time.time()

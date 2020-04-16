@@ -3,12 +3,15 @@
 # Copyright 2020 The Johns Hopkins University (author: Jiatong Shi)
 
 
+import os
 import torch
 import numpy as np
 import copy
 import time
 import librosa
 from scipy import signal
+from librosa.display import specshow
+import matplotlib.pyplot as plt
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -34,7 +37,7 @@ def train_one_epoch(train_loader, model, device, optimizer, criterion, args):
         length_mask = length_mask.to(device)
         length = length.to(device)
 
-        output = model(phone, mean_list, src_key_padding_mask=length)
+        output, _  = model(phone, mean_list, src_key_padding_mask=length)
 
         train_loss = criterion(output, duration, length_mask)
 
@@ -44,7 +47,7 @@ def train_one_epoch(train_loader, model, device, optimizer, criterion, args):
             torch.nn.utils.clip_grad_norm_(model.parameters(), args.gradclip)
         optimizer.step_and_update_lr()
         losses.update(train_loss.item(), phone.size(0))
-        if step % 10000 == 0:
+        if step % 500 == 0:
             end = time.time()
             print("step {}: train_loss {} -- sum_time: {}s".format(step, losses.avg, end - start))
 
@@ -66,10 +69,22 @@ def validate(dev_loader, model, device, criterion, args):
             length_mask = length_mask.to(device)
             length = length.to(device)
 
-            output = model(phone, mean_list, src_key_padding_mask=length)
+            output, att = model(phone, mean_list, src_key_padding_mask=length)
             val_loss = criterion(output, duration, length_mask)
             losses.update(val_loss.item(), phone.size(0))
-            if step % 1000 == 0:
+            if step % 100 == 0:
+                length = length.cpu().detach().numpy()[0]
+                att = att.cpu().detach().numpy()[0]
+                att = att[:, :length, :length]
+                plt.subplot(1, 4, 1)
+                specshow(att[0])
+                plt.subplot(1, 4, 2)
+                specshow(att[1])
+                plt.subplot(1, 4, 3)
+                specshow(att[2])
+                plt.subplot(1, 4, 4)
+                specshow(att[3])
+                plt.savefig(os.path.join(args.model_save_dir, '{}_att.png'.format(step)))
                 print("step {}: {}".format(step, losses.avg))
 
     info = {'loss': losses.avg}
