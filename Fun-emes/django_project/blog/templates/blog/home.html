@@ -2,19 +2,69 @@
 {% extends "blog/base.html" %}
 {% block content%}
 <style>
-.button {
-  background-color: #555555;
-  border: none;
-  padding: 15px 50px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  margin: 4px 2px;
-  cursor: pointer;
-  border-radius: 25px;
-}
+	#scenario {
+ 		background-color: white;
+  		color: black;
+  		border: 2px solid green;
+  		padding: 10px 20px;
+  		text-align: center;
+  		text-decoration: none;
+  		display: inline-block;
+	}
+	#image2 {
+		display: block;
+		margin-left: auto; 
+		margin-right: auto;
+	}
+	#image3 {
+		display: block;
+		margin-left: auto; 
+		margin-right: auto;
+	}
+	#button1 {
+		width:230px;
+		height:30px;
+		display: block;
+		margin-left: auto; 
+		margin-right: auto;
+	}
+	#button2 {
+		width:230px;
+		height:30px;
+		display: block;
+		margin-left: auto; 
+		margin-right: auto;
+	}
 </style>
+{% load static %}
+<div class="row">
+	<div class="column" style="width:60%;">
+		<br/>
+		<br/>
+		<img src="{% static 'blog/owl.png' %}" alt="owl" height="178" width="160">
+		<br/>
+		<br/>
+		<p style = "font-family:courier,arial,helvetica;">Welcome to Fun-emes</p>
+		<p style = "font-family:courier,arial,helvetica;">We are here to help you master a language!</p>
+	</div>
+</div>
+<br/>
+<br/>
+<br/>
 
-<button>Pick a Scenario</button>
-<button>Use Your Own Sentence</button>
+
+<div class="row">
+	<div class="column" style="width:50%;">
+		<img src="{% static 'blog/scenarios.png' %}" alt="scenarios" id="image2" height="160" width="160">
+		<br/>
+		<br/>
+		<button onclick="location.href = 'http://localhost:8000/fun-emes/given_sentence';" id="button1">Pick a Scenario</button>
+	</div>
+	<div class="column" style="width:50%;">
+		<img src="{% static 'blog/think.png' %}" alt="scenarios" id="image3" height="160" width="160">
+		<br/>
+		<br/>
+		<button onclick="location.href = 'http://localhost:8000/fun-emes/own_sentence';" id="button2">Use Your Own Sentence</button>
+	</div>
+</div>
 {% endblock content %}

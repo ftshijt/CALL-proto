@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+{% extends "blog/base.html" %}
+{% block content%}
+<style>
+.title {
+	text-align: center;
+}
+.row {
+	margin-top: 50px;
+}
+.column {
+	width: 50%;
+	text-align: center;
+}
+.chart {
+	margin-top: 30px;
+	width: 550px;
+	height: 300px;
+	justify-content: right;
+}
+.chart_title {
+
+}
+
+.bold-font {
+	font-weight: bold;
+}
+
+.center-text {
+	text-align: center;
+	justify-content: center;
+}
+
+.large-font {
+	font-size: 15px;
+}
+
+
+
+</style>
+<script>
+
+
+</script>
+
+
+<h2 class="title">Your History</h2>
+<div class="row">
+	<div class="column">
+		<h4 class="chart_title">Your performance in the past 5 days</h4>
+		<div id="curve_chart" class="chart"></div>
+		<p style="color: #3CB371">You are improving, keep it up!</p>
+	</div>
+	<div class="column">
+		<h4 class="chart_title">Words that you struggle with the most</h4>
+		<div id="table_div" class="chart"></div>
+	</div>
+</div>
+
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script type="text/javascript">
+		google.charts.load('current', {
+			callback: drawCharts,
+			packages: ['corechart', 'table']
+		});
+	
+		function drawCharts() {
+			drawPerformanceChart();
+			drawTopWordsTable();
+		}
+
+		function drawPerformanceChart() {
+			var data = google.visualization.arrayToDataTable([
+				['Date', 'Classroom', 'Social'],
+				['04/12',  70,      60],
+				['04/13',  67,      64],
+				['04/14',  78,      70],
+				['04/15',  83,      71],
+				['04/16',  85,      75],
+			]);
+			
+			var options = {
+				curveType: 'function',
+				backgroundColor: '#fafafa',
+				legend: { position: 'bottom'},
+				vAxis : {title: 'Average Score of the day (out of 100)'}
+			};
+			
+			var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+			
+			chart.draw(data, options);
+	  }
+
+	  function drawTopWordsTable() {
+		var cssClassNames = {
+			'headerRow': 'bold-font large-font center-text',
+			'tableRow': 'bold-font large-font center-text',
+			'oddTableRow': 'bold-font large-font center-text',
+			'selectedTableRow': '',
+			'hoverTableRow': '',
+			'headerCell': '',
+			'tableCell': '',
+			'rowNumberCell': ''
+		};
+
+		var data = new google.visualization.DataTable();
+		data.addColumn('string', 'Word');
+		data.addColumn('number', 'Average Score');
+		data.addColumn('number', 'Times encountered');
+		data.addRows([
+			['Application',  {v: 43, f: '47%'}, 12],
+			['White',   {v: 49,   f: '49%'}, 6],
+			['Professor', {v: 57, f: '57%'}, 4],
+			['Mystery',   {v: 72,  f: '72%'}, 8]
+		]);
+		data.sort({column: 1, asc: true});
+
+		var table = new google.visualization.Table(document.getElementById('table_div'));
+
+		var formatter = new google.visualization.ColorFormat();
+		formatter.addRange(0, 50, '#ffffff', 'crimson');
+		formatter.addGradientRange(50, 80, '#ffffff', 'coral', 'orange'); // text color, background color
+		formatter.addRange(60, 80, '#000000', '#00FF7F');
+		formatter.format(data, 1); // Apply formatter to second column
+
+		var options = {'showRowNumber': true, 'allowHtml': true, 'width': '100%', 'height': '100%', 'cssClassNames': cssClassNames};
+		table.draw(data, options);
+	  }
+
+	</script>
+
+
+
+
+{% endblock content %}
