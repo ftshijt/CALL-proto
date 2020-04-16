@@ -339,8 +339,8 @@ class Score():
 
         return fluency
 
-    def CalcScores(self, audio, text):
-        post_probs = self.KaldiInfer(audio)
+    def CalcScores(self, audio, text, flag_version):
+        post_probs = self.KaldiInfer(audio, flag_version)
         t2p = self.Text2Phone(text)
         aligned_result = self.Align(post_probs, t2p)
         text = self.CleanText(text)
@@ -462,7 +462,7 @@ if __name__ == "__main__":
     audio = '/home/nan/CALL-proto/Fun-emes/django_project/microphone-results_4.wav'
     Score_test = Score(args.lexiconaddr, args.phonesaddr, args.sr, args.kaldi_workspace, args.utt_id, args.version)
    # score_output, utt_id = Score_test.CalcScores(audio, text)
-    score_output = Score_test.CalcScores(audio, text)
+    score_output = Score_test.CalcScores(audio, text, args.version)
     wav_id = PackZero(args.utt_id, 6)
 #### should remove test_
     json.dump(score_output, open("/home/nan/CALL-proto/Fun-emes/django_project/test_score_wav%s.json"%wav_id, "w", encoding="utf-8"))

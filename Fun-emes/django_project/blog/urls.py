@@ -1,8 +1,11 @@
 from django.urls import path
+from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-        path('', views.home, name='blog-home'),
-        path('about/', views.about, name='blog-about'),
-        path('audio/', views.audio, name='blog-audio'),
+        path('', views.home, name='home'),
+        path('own_sentence/', views.own_sentence, name='own_sentence'),
+        path('given_sentence/', views.given_sentence, name='given_sentence'),
+        path('profile/', views.profile, name='profile'),
+        path('feedback/', views.feedback, name='feedback'),
 ]

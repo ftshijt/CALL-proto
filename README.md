@@ -1,9 +1,14 @@
 # CALL-proto
 A prototype works on computer assisted language learning (CALL)
+The writeup for HW4 updates are located in the doc/ folder
 
 ## Document
 doc/UI flow.pptx \
-doc/Backend-Design-0309-2020.pdf
+doc/Backend-Design-0309-2020.pdf \
+doc/Backend-Design-Assignment4.pdf \
+doc/Frontend-Design-Assignment4.pdf \
+doc/Frontend-Design-Assignment5.pdf \
+doc/HW5\_backend.pdf
 
 ## Environment Install
 
@@ -27,7 +32,8 @@ cudnn version: 7501 \
 django version: 3.0.4 \
 speechrecognition version: 2.1.3 \
 portaudio version: V19.6.0 \
-pyaudio version: 0.2.11
+pyaudio version: 0.2.11 \
+gTTS version: 2.1.1
 
 
 # Django Application
