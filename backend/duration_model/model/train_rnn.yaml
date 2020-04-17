@@ -1,0 +1,20 @@
+train: /export/c04/jiatong/project/ai_system/CALL-proto/data/train_960.ali
+val: /export/c04/jiatong/project/ai_system/CALL-proto/data/dev_960.ali
+# train: /export/c04/jiatong/project/ai_system/CALL-proto/data/debug.ali
+# val: /export/c04/jiatong/project/ai_system/CALL-proto/data/debug.ali
+
+model_save_dir: exp/debug
+model_type: LSTM
+max_epochs: 50
+lr: 0.01
+optimizer: adam
+max_len: 100
+batchsize: 64
+num_workers: 4
+
+phone_size: 87
+embedding_size: 256
+hidden_size: 512
+num_block: 6
+nhead: 4
+

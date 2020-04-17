@@ -58,6 +58,13 @@ def train(args):
                                 nhead=args.nhead,
                                 num_block=args.num_block,
                                 pos_enc=True)
+    elif args.model_type == "LSTM":
+        model = LSTMDuration(phone_size=args.phone_size,
+                                embed_size=args.embedding_size,
+                                d_model=args.hidden_size,
+                                dropout=args.dropout,
+                                d_output=1,
+                                num_block=args.num_block)
     else:
         raise ValueError('Not Support Model Type %s' % args.model_type)
     print(model)
@@ -97,6 +104,11 @@ def train(args):
             args.hidden_size,
             args.noam_warmup_steps,
             args.noam_scale)
+    elif args.optimizer == "adam":
+        optimizer = torch.optim.Adam(model.parameters(),
+            lr=args.lr,
+            betas=(0.9, 0.98),
+            eps=1e-09)
     else:
         raise ValueError('Not Support Optimizer')
 

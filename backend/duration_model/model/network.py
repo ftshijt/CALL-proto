@@ -71,6 +71,56 @@ class TransformerDuration(Module):
                 xavier_uniform_(p)
 
 
+class LSTMDuration(Module):
+    """Transformer encoder based diarization model.
+    Args:
+        d_model: the number of expected features in the encoder/decoder inputs.
+        nhead: the number of heads in the multiheadattention models.
+        num_encoder_layers: the number of sub-encoder-layers in the encoder.
+        dim_feedforward: the dimension of the feedforward network model.
+        dropout: the dropout value.
+        pos_enc: True if positional encoding is used.
+    """
+
+    def __init__(self, embed_size=512, d_model=512, d_output=1,
+                 num_block=6, phone_size=87,
+                 dropout=0.1, device="cuda"):
+        super(LSTMDuration, self).__init__()
+
+        self.input_embed = nn.Embedding(phone_size, embed_size)
+        self.input_fc = nn.Linear(embed_size, d_model)
+        self.speed_fc = nn.Linear(1, d_model)
+        self.input_norm = LayerNorm(d_model)
+        self.lstm = nn.LSTM(input_size=embed_size, hidden_size=d_model, num_layers=num_block, batch_first=True,
+            bidirectional=True, dropout=dropout)
+        
+        self.output_fc = Linear(d_model * 2, d_output)
+
+        self._reset_parameters()
+
+        self.d_model = d_model
+        self.nhead = nhead
+        self.pos_enc = pos_enc
+
+    def forward(self, src, speed, src_mask=None,
+                src_key_padding_mask=None):
+        embed = self.input_embed(src)
+        embed = self.input_fc(embed)
+        speed = self.speed_fc(speed)
+        embed = embed + speed
+        embed = self.input_norm(embed)
+        output, (h0, c0) = self.lstm(embed)
+        output = self.output_fc(output)
+        return output, (h0, c0)
+
+    def _reset_parameters(self):
+        """Initiate parameters in the transformer model."""
+
+        for p in self.parameters():
+            if p.dim() > 1:
+                xavier_uniform_(p)
+
+
 def _test():
     # debug test
 

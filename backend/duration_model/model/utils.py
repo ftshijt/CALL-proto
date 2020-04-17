@@ -69,10 +69,13 @@ def validate(dev_loader, model, device, criterion, args):
             length_mask = length_mask.to(device)
             length = length.to(device)
 
-            output, att = model(phone, mean_list, src_key_padding_mask=length)
+            if args.model_type == "Transformer":
+                output, att = model(phone, mean_list, src_key_padding_mask=length)
+            elif args.model_type == "LSTM":
+                output, _ = model(phone, mean_list, src_key_padding_mask=length)
             val_loss = criterion(output, duration, length_mask)
             losses.update(val_loss.item(), phone.size(0))
-            if step % 100 == 0:
+            if step % 100 == 0 and args.model_type == "TransformerDuration":
                 length = length.cpu().detach().numpy()[0]
                 att = att.cpu().detach().numpy()[0]
                 att = att[:, :length, :length]
