@@ -10,7 +10,7 @@ import torch
 import time
 from model.gpu_util import use_single_gpu
 from model.duration_dataset import DurationDataset, DurationCollator
-from model.network import TransformerDuration
+from model.network import TransformerDuration, LSTMDuration
 from model.transformer_optim import ScheduledOptim
 from model.loss import MaskedLoss
 from model.utils import train_one_epoch, save_checkpoint, validate, record_info
@@ -131,11 +131,17 @@ def train(args):
         start_t_train = time.time()
         train_info = train_one_epoch(train_loader, model, device, optimizer, loss, args)
         end_t_train = time.time()
-
-        print(
+        if args.model_type == "Transformer":
+            print(
             'Train epoch: {:04d}, lr: {:.6f}, '
             'loss: {:.4f}, time: {:.2f}s'.format(
                 epoch, optimizer._optimizer.param_groups[0]['lr'],
+                train_info['loss'], end_t_train - start_t_train))
+        else:
+            print(
+            'Train epoch: {:04d}, '
+            'loss: {:.4f}, time: {:.2f}s'.format(
+                epoch,
                 train_info['loss'], end_t_train - start_t_train))
 
         start_t_dev = time.time()
@@ -149,12 +155,17 @@ def train(args):
         
         if not os.path.exists(args.model_save_dir):
             os.makedirs(args.model_save_dir)
-
-        save_checkpoint({
-            'epoch': epoch,
-            'state_dict': model.state_dict(),
-            'optimizer': optimizer._optimizer.state_dict(),
-        }, "{}/epoch_{}.pth.tar".format(args.model_save_dir, epoch))
+        if args.model_type == "Transformer":
+            save_checkpoint({
+                'epoch': epoch,
+                'state_dict': model.state_dict(),
+                'optimizer': optimizer._optimizer.state_dict(),
+            }, "{}/epoch_{}.pth.tar".format(args.model_save_dir, epoch))
+        else:
+            save_checkpoint({
+                'epoch': epoch,
+                'state_dict': model.state_dict(),
+            }, "{}/epoch_{}.pth.tar".format(args.model_save_dir, epoch))
 
         # record training and validation information
         if args.use_tfboard:

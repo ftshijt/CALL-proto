@@ -99,8 +99,6 @@ class LSTMDuration(Module):
         self._reset_parameters()
 
         self.d_model = d_model
-        self.nhead = nhead
-        self.pos_enc = pos_enc
 
     def forward(self, src, speed, src_mask=None,
                 src_key_padding_mask=None):

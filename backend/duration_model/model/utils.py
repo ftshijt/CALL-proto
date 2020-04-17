@@ -45,7 +45,10 @@ def train_one_epoch(train_loader, model, device, optimizer, criterion, args):
         train_loss.backward()
         if args.gradclip > 0:
             torch.nn.utils.clip_grad_norm_(model.parameters(), args.gradclip)
-        optimizer.step_and_update_lr()
+        if args.optimizer == "noam":
+            optimizer.step_and_update_lr()
+        else:
+            optimizer.step()
         losses.update(train_loss.item(), phone.size(0))
         if step % 500 == 0:
             end = time.time()
