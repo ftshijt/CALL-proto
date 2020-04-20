@@ -10,7 +10,7 @@ import torch
 import time
 from model.gpu_util import use_single_gpu
 from model.duration_dataset import DurationDataset, DurationCollator
-from model.network import TransformerDuration, LSTMDuration
+from model.network import TransformerDuration, LSTMDuration, DNNDuration
 from model.transformer_optim import ScheduledOptim
 from model.loss import MaskedLoss
 from model.utils import train_one_epoch, save_checkpoint, validate, record_info
@@ -34,7 +34,7 @@ def train(args):
     dev_set = DurationDataset(duration_file=args.val,
                              max_len=args.max_len)
 
-    collate_fn = DurationCollator(args.max_len)
+    collate_fn = DurationCollator(args.max_len, model_type=args.model_type, context=args.context)
     train_loader = torch.utils.data.DataLoader(dataset=train_set,
                                                batch_size=args.batchsize,
                                                shuffle=True,

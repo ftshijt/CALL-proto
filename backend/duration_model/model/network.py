@@ -9,6 +9,7 @@ import math
 import model.module as module
 from torch.nn.init import xavier_uniform_
 from torch.nn import Module, LayerNorm, Linear, Dropout
+import torch.nn.functional as F
 
 class TransformerDuration(Module):
     """Transformer encoder based diarization model.
@@ -130,14 +131,14 @@ class DNNDuration(Module):
 
     def forward(self, src, speed, src_mask=None,
                 src_key_padding_mask=None):
-        out = nn.ReLU(self.input_fc(src))
-        speed = nn.ReLU(self.speed_fc(speed))
+        out = F.relu(self.input_fc(src))
+        speed = F.relu(self.speed_fc(speed))
         out = out + speed
-        out = nn.ReLU(self.input_norm(out))
-        out = nn.ReLU(self.middle_fc(out))
-        out = nn.ReLU(self.output_fc(out))
+        out = F.relu(self.input_norm(out))
+        out = F.relu(self.middle_fc(out))
+        out = F.relu(self.output_fc(out))
   
-        return output
+        return out
 
     def _reset_parameters(self):
         """Initiate parameters in the transformer model."""

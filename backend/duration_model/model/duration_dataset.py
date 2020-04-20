@@ -36,11 +36,11 @@ class DurationCollator(object):
                 for j in range(self.max_len):
                     cdphone = []
                     for k in range(self.context):
-                        cdphone.append(phone[i, int(max(j-context-1, 0))])
-                    cdphone = cdphone.reverse()
+                        cdphone.append(phone[i, int(max(j-k-1, 0))])
+                    cdphone.reverse()
                     cdphone.append(phone[i, j])
                     for k in range(self.context):
-                        cdphone.append(phone[i, int(min(j + context + 1, self.max_len - 1))])
+                        cdphone.append(phone[i, int(min(j+k+1, self.max_len - 1))])
                     cdphone = np.array(cdphone)
                     context_phone[i, j, :] = cdphone
             phone = context_phone

@@ -43,6 +43,7 @@ def train_one_epoch(train_loader, model, device, optimizer, criterion, args):
         elif args.model_type == "LSTM":
             output, _ = model(phone, mean_list, src_key_padding_mask=length)
         elif args.model_type == "DNN":
+            phone = phone.float()
             output = model(phone, mean_list)
 
         train_loss = criterion(output, duration, length_mask)
@@ -83,6 +84,7 @@ def validate(dev_loader, model, device, criterion, args):
             elif args.model_type == "LSTM":
                 output, _ = model(phone, mean_list, src_key_padding_mask=length)
             elif args.model_type == "DNN":
+                phone = phone.float()
                 output = model(phone, mean_list)
             val_loss = criterion(output, duration, length_mask)
             losses.update(val_loss.item(), phone.size(0))
