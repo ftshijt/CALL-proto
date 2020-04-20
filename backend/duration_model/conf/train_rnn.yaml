@@ -1,9 +1,9 @@
 train: /export/c04/jiatong/project/ai_system/CALL-proto/data/train_960.ali
-val: /export/c04/jiatong/project/ai_system/CALL-proto/data/dev_960.ali
+val: /export/c04/jiatong/project/ai_system/CALL-proto/data/dev.ali
 # train: /export/c04/jiatong/project/ai_system/CALL-proto/data/debug.ali
 # val: /export/c04/jiatong/project/ai_system/CALL-proto/data/debug.ali
 
-model_save_dir: exp/debug_lstm
+model_save_dir: exp/lstm
 model_type: LSTM
 max_epochs: 50
 lr: 0.01
