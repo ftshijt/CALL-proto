@@ -10,8 +10,10 @@ import librosa
 
 
 class DurationCollator(object):
-    def __init__(self, max_len):
+    def __init__(self, max_len, model_type=None, context=-1):
         self.max_len = max_len
+        self.model_type = model_type
+        self.context = context
         # plus 1 for aligner to consider padding char
 
     def __call__(self, batch):
@@ -27,6 +29,22 @@ class DurationCollator(object):
             phone[i, :length] = batch[i][0][:length]
             duration[i, :length] = batch[i][1][:length]
             mean_list.append(np.mean(batch[i][1][:length]))
+
+        if self.model_type == "DNN":
+            context_phone = np.zeros((batch_size, self.max_len, self.context * 2 + 1))
+            for i in range(batch_size):
+                for j in range(self.max_len):
+                    cdphone = []
+                    for k in range(self.context):
+                        cdphone.append(phone[i, int(max(j-context-1, 0))])
+                    cdphone = cdphone.reverse()
+                    cdphone.append(phone[i, j])
+                    for k in range(self.context):
+                        cdphone.append(phone[i, int(min(j + context + 1, self.max_len - 1))])
+                    cdphone = np.array(cdphone)
+                    context_phone[i, j, :] = cdphone
+            phone = context_phone
+
 
         length = np.array(len_list)
         mean_list = np.array(mean_list)

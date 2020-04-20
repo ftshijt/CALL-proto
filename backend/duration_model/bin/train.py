@@ -43,6 +43,7 @@ parser.add_argument('--embedding-size', default=256, type=int)
 parser.add_argument('--hidden-size', default=256, type=int)
 parser.add_argument('--dropout', default=0.1, type=float)
 parser.add_argument('--num_block', default=6, type=int)
+parser.add_argument('--context', default=3, type=int)
 parser.add_argument('--nhead', default=4, type=int)
 parser.add_argument('--seed', default=666, type=int)
 parser.add_argument('--use_tfb', dest='use_tfboard',

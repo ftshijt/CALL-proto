@@ -65,6 +65,10 @@ def train(args):
                                 dropout=args.dropout,
                                 d_output=1,
                                 num_block=args.num_block)
+    elif args.model_type == "DNN":
+        model = DNNDuration(input_size=args.context * 2 + 1,
+                                d_model = args.hidden_size,
+                                d_output=1)
     else:
         raise ValueError('Not Support Model Type %s' % args.model_type)
     print(model)
@@ -131,7 +135,7 @@ def train(args):
         start_t_train = time.time()
         train_info = train_one_epoch(train_loader, model, device, optimizer, loss, args)
         end_t_train = time.time()
-        if args.model_type == "Transformer":
+        if args.optimizer == "noam":
             print(
             'Train epoch: {:04d}, lr: {:.6f}, '
             'loss: {:.4f}, time: {:.2f}s'.format(
@@ -155,7 +159,7 @@ def train(args):
         
         if not os.path.exists(args.model_save_dir):
             os.makedirs(args.model_save_dir)
-        if args.model_type == "Transformer":
+        if args.optimizer == "noam":
             save_checkpoint({
                 'epoch': epoch,
                 'state_dict': model.state_dict(),

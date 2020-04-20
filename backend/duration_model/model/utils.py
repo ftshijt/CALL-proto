@@ -37,7 +37,13 @@ def train_one_epoch(train_loader, model, device, optimizer, criterion, args):
         length_mask = length_mask.to(device)
         length = length.to(device)
 
-        output, _  = model(phone, mean_list, src_key_padding_mask=length)
+
+        if args.model_type == "Transformer":
+            output, att = model(phone, mean_list, src_key_padding_mask=length)
+        elif args.model_type == "LSTM":
+            output, _ = model(phone, mean_list, src_key_padding_mask=length)
+        elif args.model_type == "DNN":
+            output = model(phone, mean_list)
 
         train_loss = criterion(output, duration, length_mask)
 
@@ -76,6 +82,8 @@ def validate(dev_loader, model, device, criterion, args):
                 output, att = model(phone, mean_list, src_key_padding_mask=length)
             elif args.model_type == "LSTM":
                 output, _ = model(phone, mean_list, src_key_padding_mask=length)
+            elif args.model_type == "DNN":
+                output = model(phone, mean_list)
             val_loss = criterion(output, duration, length_mask)
             losses.update(val_loss.item(), phone.size(0))
             if step % 100 == 0 and args.model_type == "TransformerDuration":

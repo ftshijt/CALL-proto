@@ -72,15 +72,6 @@ class TransformerDuration(Module):
 
 
 class LSTMDuration(Module):
-    """Transformer encoder based diarization model.
-    Args:
-        d_model: the number of expected features in the encoder/decoder inputs.
-        nhead: the number of heads in the multiheadattention models.
-        num_encoder_layers: the number of sub-encoder-layers in the encoder.
-        dim_feedforward: the dimension of the feedforward network model.
-        dropout: the dropout value.
-        pos_enc: True if positional encoding is used.
-    """
 
     def __init__(self, embed_size=512, d_model=512, d_output=1,
                  num_block=6, phone_size=87,
@@ -117,6 +108,44 @@ class LSTMDuration(Module):
         for p in self.parameters():
             if p.dim() > 1:
                 xavier_uniform_(p)
+
+
+
+class DNNDuration(Module):
+
+    def __init__(self, input_size=7, d_model=1024, d_output=1,
+                 device="cuda"):
+        super(DNNDuration, self).__init__()
+
+        self.input_fc = nn.Linear(input_size, d_model)
+        self.speed_fc = nn.Linear(1, d_model)
+        self.input_norm = LayerNorm(d_model)
+        self.middle_fc = nn.Linear(d_model, d_model)
+        
+        self.output_fc = Linear(d_model, d_output)
+
+        self._reset_parameters()
+
+        self.d_model = d_model
+
+    def forward(self, src, speed, src_mask=None,
+                src_key_padding_mask=None):
+        out = nn.ReLU(self.input_fc(src))
+        speed = nn.ReLU(self.speed_fc(speed))
+        out = out + speed
+        out = nn.ReLU(self.input_norm(out))
+        out = nn.ReLU(self.middle_fc(out))
+        out = nn.ReLU(self.output_fc(out))
+  
+        return output
+
+    def _reset_parameters(self):
+        """Initiate parameters in the transformer model."""
+
+        for p in self.parameters():
+            if p.dim() > 1:
+                xavier_uniform_(p)
+
 
 
 def _test():
