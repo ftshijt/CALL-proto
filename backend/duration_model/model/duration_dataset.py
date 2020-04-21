@@ -23,9 +23,11 @@ class DurationCollator(object):
         mean_list = []
         phone = np.zeros((batch_size, self.max_len))
         duration = np.zeros((batch_size, self.max_len))
+        length_mask = np.zeros((batch_size, self.max_range))
 
         for i in range(batch_size):
             length = min(len_list[i], self.max_len)
+            length_mask[i, :length] = np.arange(1, length + 1)
             phone[i, :length] = batch[i][0][:length]
             duration[i, :length] = batch[i][1][:length]
             mean_list.append(np.mean(batch[i][1][:length]))
@@ -46,12 +48,11 @@ class DurationCollator(object):
             phone = context_phone
 
 
-        length = np.array(len_list)
         mean_list = np.array(mean_list)
 
         phone = torch.from_numpy(phone).long()
         duration = torch.from_numpy(duration).float()
-        length = torch.from_numpy(length).long()
+        length = torch.from_numpy(length_mask).long()
         mean_list = torch.from_numpy(mean_list).unsqueeze(dim=-1).unsqueeze(dim=-1).float()
         return phone, mean_list, duration, length
 
