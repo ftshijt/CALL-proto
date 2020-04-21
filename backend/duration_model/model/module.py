@@ -292,7 +292,7 @@ def apply_masks(scores, batch_size, unseen_mask, src_lengths, device):
         # [1, seq_len, seq_len]
         sequence_mask = (
             torch.tril(torch.ones(seq_len, seq_len), diagonal=0).unsqueeze(0).int()
-        )
+        ).to(device)
 
     if src_lengths is not None:
         # [batch_size, 1, seq_len]

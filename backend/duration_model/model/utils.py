@@ -88,7 +88,7 @@ def validate(dev_loader, model, device, criterion, args):
                 output = model(phone, mean_list)
             val_loss = criterion(output, duration, length_mask)
             losses.update(val_loss.item(), phone.size(0))
-            if step % 100 == 0 and args.model_type == "TransformerDuration":
+            if step % 100 == 0 and args.model_type == "Transformer":
                 length = length.cpu().detach().numpy()[0]
                 att = att.cpu().detach().numpy()[0]
                 att = att[:, :length, :length]
