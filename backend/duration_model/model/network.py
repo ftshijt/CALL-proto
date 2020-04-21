@@ -46,7 +46,7 @@ class TransformerDuration(Module):
         self.nhead = nhead
         self.pos_enc = pos_enc
 
-    def forward(self, src, speed, src_mask=None,
+    def forward(self, src, speed, src_mask=True,
                 src_key_padding_mask=None):
         embed = self.input_embed(src)
         embed = self.input_fc(embed)

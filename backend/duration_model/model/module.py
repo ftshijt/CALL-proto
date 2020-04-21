@@ -94,7 +94,7 @@ class MultiheadAttention(nn.Module):
         self.output_fc = nn.Linear(d_model, d_model, bias=False)
         self.attn = None
 
-    def forward(self, query, key, value, unseen_mask=False, src_lengths=None):
+    def forward(self, query, key, value, unseen_mask=True, src_lengths=None):
         # 1. Fully-connected layer on q, k, v then
         # 2. Split heads on q, k, v
         # (batch_size, seq_len, d_model) -->
@@ -152,7 +152,7 @@ class TransformerEncoderLayer(Module):
             state['activation'] = F.relu
         super(TransformerEncoderLayer, self).__setstate__(state)
 
-    def forward(self, src, src_mask=None, src_key_padding_mask=None):
+    def forward(self, src, src_mask=True, src_key_padding_mask=None):
         # type: (Tensor, Optional[Tensor], Optional[Tensor]) -> Tensor
         r"""Pass the input through the encoder layer.
 
@@ -193,7 +193,7 @@ class TransformerEncoder(Module):
         self.num_layers = num_layers
         self.norm = norm
 
-    def forward(self, src, mask=None, src_key_padding_mask=None):
+    def forward(self, src, mask=True, src_key_padding_mask=None):
         # type: (Tensor, Optional[Tensor], Optional[Tensor]) -> Tensor
         r"""Pass the input through the encoder layers in turn.
 
@@ -252,7 +252,7 @@ class Transformer(nn.Module):
             if p.dim() > 1:
                 xavier_uniform_(p)
 
-    def forward(self, src, src_mask=None, src_key_padding_mask=None):
+    def forward(self, src, src_mask=True, src_key_padding_mask=None):
         src = torch.transpose(src, 0, 1)
         embed = self.input_fc(src)
         embed = self.input_norm(embed)
