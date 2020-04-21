@@ -59,66 +59,116 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 
+
 class MultiheadAttention(nn.Module):
     """
-    Multiheaded Scaled Dot Product Attention
-    Implements equation:
-    MultiHead(Q, K, V) = Concat(head_1,...,head_h)W^O
-        where head_i = Attention(QW_i^Q, KW_i^K, VW_i^V)
-    Similarly to the above, d_k = d_v = d_model / h
-    Inputs
-      init:
-        nheads : integer # of attention heads
-        d_model : model dimensionality
-        d_head : dimensionality of a single head
-      forward:
-        query : [batch size, sequence length, d_model]
-        key: [batch size, sequence length, d_model]
-        value: [batch size, sequence length, d_model]
-      unseen_mask: if True, only attend to previous sequence positions
-      src_lengths_mask: if True, mask padding based on src_lengths
-    Output
-      result : [batch_size, sequence length, d_model]
+    Multihead attention mechanism (dot attention)
     """
-
-    def __init__(self, nheads, d_model, device="cuda"):
-        "Take in model size and number of heads."
+    def __init__(self, num_hidden_k):
+        """
+        :param num_hidden_k: dimension of hidden 
+        """
         super(MultiheadAttention, self).__init__()
-        assert d_model % nheads == 0
-        self.d_head = d_model // nheads
-        self.nheads = nheads
-        self.device = device
-        self.Q_fc = nn.Linear(d_model, d_model, bias=False)
-        self.K_fc = nn.Linear(d_model, d_model, bias=False)
-        self.V_fc = nn.Linear(d_model, d_model, bias=False)
-        self.output_fc = nn.Linear(d_model, d_model, bias=False)
-        self.attn = None
 
-    def forward(self, query, key, value, unseen_mask=True, src_lengths=None):
-        # 1. Fully-connected layer on q, k, v then
-        # 2. Split heads on q, k, v
-        # (batch_size, seq_len, d_model) -->
-        # (batch_size, nheads, seq_len, d_head)
-        query = split_heads(self.Q_fc(query), self.nheads)
-        key = split_heads(self.K_fc(key), self.nheads)
-        value = split_heads(self.V_fc(value), self.nheads)
+        self.num_hidden_k = num_hidden_k
+        self.attn_dropout = nn.Dropout(p=0.1)
 
-        # 4. Scaled dot product attention
-        # (batch_size, nheads, seq_len, d_head)
-        x, self.attn = scaled_dot_prod_attn(
-            query=query,
-            key=key,
-            value=value,
-            unseen_mask=unseen_mask,
-            src_lengths=src_lengths,
-            device=self.device
-        )
+    def forward(self, key, value, query, mask=None, query_mask=None):
+        # Get attention score
+        attn = t.bmm(query, key.transpose(1, 2))
+        attn = attn / math.sqrt(self.num_hidden_k)
 
-        # 5. Combine heads
-        x = combine_heads(x)
+        # Masking to ignore padding (key side)
+        if mask is not None:
+            attn = attn.masked_fill(mask, -2 ** 32 + 1)
+            attn = t.softmax(attn, dim=-1)
+        else:
+            attn = t.softmax(attn, dim=-1)
 
-        # 6. Fully-connected layer for output
-        return self.output_fc(x), self.attn
+        # Masking to ignore padding (query side)
+        if query_mask is not None:
+            attn = attn * query_mask
+
+        # Dropout
+        # attn = self.attn_dropout(attn)
+        
+        # Get Context Vector
+        result = t.bmm(attn, value)
+
+        return result, attn
+
+
+class Attention(nn.Module):
+    """
+    Attention Network
+    """
+    def __init__(self, num_hidden, h=4):
+        """
+        :param num_hidden: dimension of hidden
+        :param h: num of heads 
+        """
+        super(Attention, self).__init__()
+
+        self.num_hidden = num_hidden
+        self.num_hidden_per_attn = num_hidden // h
+        self.h = h
+
+        self.key = Linear(num_hidden, num_hidden, bias=False)
+        self.value = Linear(num_hidden, num_hidden, bias=False)
+        self.query = Linear(num_hidden, num_hidden, bias=False)
+
+        self.multihead = MultiheadAttention(self.num_hidden_per_attn)
+
+        self.residual_dropout = nn.Dropout(p=0.1)
+
+        self.final_linear = Linear(num_hidden * 2, num_hidden)
+
+        self.layer_norm_1 = nn.LayerNorm(num_hidden)
+
+    def forward(self, memory, decoder_input, mask=None, query_mask=None):
+
+        batch_size = memory.size(0)
+        seq_k = memory.size(1)
+        seq_q = decoder_input.size(1)
+        
+        # Repeat masks h times
+        if query_mask is not None:
+            query_mask = query_mask.unsqueeze(-1).repeat(1, 1, seq_k)
+            query_mask = query_mask.repeat(self.h, 1, 1)
+        if mask is not None:
+            mask = mask.repeat(self.h, 1, 1)
+
+        # Make multihead
+        key = self.key(memory).view(batch_size, seq_k, self.h, self.num_hidden_per_attn)
+        value = self.value(memory).view(batch_size, seq_k, self.h, self.num_hidden_per_attn)
+        query = self.query(decoder_input).view(batch_size, seq_q, self.h, self.num_hidden_per_attn)
+
+        key = key.permute(2, 0, 1, 3).contiguous().view(-1, seq_k, self.num_hidden_per_attn)
+        value = value.permute(2, 0, 1, 3).contiguous().view(-1, seq_k, self.num_hidden_per_attn)
+        query = query.permute(2, 0, 1, 3).contiguous().view(-1, seq_q, self.num_hidden_per_attn)
+
+        # Get context vector
+        result, attns = self.multihead(key, value, query, mask=mask, query_mask=query_mask)
+
+        # Concatenate all multihead context vector
+        result = result.view(self.h, batch_size, seq_q, self.num_hidden_per_attn)
+        result = result.permute(1, 2, 0, 3).contiguous().view(batch_size, seq_q, -1)
+        
+        # Concatenate context vector with input (most important)
+        result = t.cat([decoder_input, result], dim=-1)
+        
+        # Final linear
+        result = self.final_linear(result)
+
+        # Residual dropout & connection
+        result = result + decoder_input
+
+        # result = self.residual_dropout(result)
+
+        # Layer normalization
+        result = self.layer_norm_1(result)
+
+        return result, attns
 
 
 class TransformerEncoderLayer(Module):
@@ -134,7 +184,7 @@ class TransformerEncoderLayer(Module):
 
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1, activation="relu", device="cuda"):
         super(TransformerEncoderLayer, self).__init__()
-        self.self_attn = MultiheadAttention(nhead, d_model, device)
+        self.self_attn = Attention(h=nhead, num_hidden=d_model)
         # Implementation of Feedforward model
         self.linear1 = Linear(d_model, dim_feedforward)
         self.dropout = Dropout(dropout)
@@ -270,109 +320,6 @@ class Transformer(nn.Module):
         output = torch.transpose(output, 0, 1)
         return output, att_weight
 
-
-
-def create_src_lengths_mask(batch_size, src_lengths, max_srclen=None):
-    if max_srclen is None:
-        max_srclen = src_lengths.max()
-
-    src_indices = torch.arange(0, max_srclen).unsqueeze(0).type_as(src_lengths)
-    src_indices = src_indices.expand(batch_size, max_srclen)
-    src_lengths = src_lengths.unsqueeze(dim=1).expand(batch_size, max_srclen)
-    # returns [batch_size, max_seq_len]
-    return (src_indices < src_lengths).int().detach()
-
-
-def apply_masks(scores, batch_size, unseen_mask, src_lengths, device):
-    seq_len = scores.shape[-1]
-
-    # [1, seq_len, seq_len]
-    sequence_mask = torch.ones(seq_len, seq_len).unsqueeze(0).int().to(device)
-    if unseen_mask:
-        # [1, seq_len, seq_len]
-        sequence_mask = (
-            torch.tril(torch.ones(seq_len, seq_len), diagonal=0).unsqueeze(0).int()
-        )
-
-    if src_lengths is not None:
-        # [batch_size, 1, seq_len]
-        src_lengths_mask = create_src_lengths_mask(
-            batch_size=batch_size, src_lengths=src_lengths, max_srclen=seq_len
-        ).unsqueeze(-2).to(device)
-
-        # [batch_size, seq_len, seq_len]
-        sequence_mask = sequence_mask & src_lengths_mask
-
-    # [batch_size, 1, seq_len, seq_len]
-    sequence_mask = sequence_mask.unsqueeze(1)
-
-    scores = scores.masked_fill(sequence_mask == 0, -np.inf)
-    return scores
-
-
-def scaled_dot_prod_attn(query, key, value, unseen_mask=False, src_lengths=None, device="cuda"):
-    """
-    Scaled Dot Product Attention
-    Implements equation:
-    Attention(Q, K, V) = softmax(QK^T/\sqrt{d_k})V
-    Inputs:
-      query : [batch size, nheads, sequence length, d_k]
-      key : [batch size, nheads, sequence length, d_k]
-      value : [batch size, nheads, sequence length, d_v]
-      unseen_mask: if True, only attend to previous sequence positions
-      src_lengths_mask: if True, mask padding based on src_lengths
-    Outputs:
-      attn: [batch size, sequence length, d_v]
-    Note that in this implementation d_q = d_k = d_v = dim
-    """
-    d_k = query.shape[-1]
-    scores = torch.matmul(query, key.transpose(2, 3)) / math.sqrt(d_k)
-    if unseen_mask or src_lengths is not None:
-        scores = apply_masks(
-            scores=scores,
-            batch_size=query.shape[0],
-            unseen_mask=unseen_mask,
-            src_lengths=src_lengths,
-            device=device
-        )
-    p_attn = F.softmax(scores, dim=-1)
-    return torch.matmul(p_attn, value), p_attn
-
-
-def split_heads(X, nheads):
-    """
-    Split heads:
-    1) Split (reshape) last dimension (size d_model) into nheads, d_head
-    2) Transpose X from (batch size, sequence length, nheads, d_head) to
-        (batch size, nheads, sequence length, d_head)
-    Inputs:
-      X : [batch size, sequence length, nheads * d_head]
-      nheads : integer
-    Outputs:
-      [batch size,  nheads, sequence length, d_head]
-    """
-    last_dim = X.shape[-1]
-    assert last_dim % nheads == 0
-    X_last_dim_split = X.view(list(X.shape[:-1]) + [nheads, last_dim // nheads])
-    return X_last_dim_split.transpose(1, 2)
-
-
-def combine_heads(X):
-    """
-    Combine heads (the inverse of split heads):
-    1) Transpose X from (batch size, nheads, sequence length, d_head) to
-        (batch size, sequence length, nheads, d_head)
-    2) Combine (reshape) last 2 dimensions (nheads, d_head) into 1 (d_model)
-    Inputs:
-      X : [batch size * nheads, sequence length, d_head]
-      nheads : integer
-      d_head : integer
-    Outputs:
-      [batch_size, seq_len, d_model]
-    """
-    X = X.transpose(1, 2)
-    nheads, d_head = X.shape[-2:]
-    return X.contiguous().view(list(X.shape[:-2]) + [nheads * d_head])
 
 
 def _get_activation_fn(activation):

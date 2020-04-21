@@ -16,14 +16,6 @@ import matplotlib.pyplot as plt
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def create_src_key_padding_mask(src_len, max_len):
-    bs = len(src_len)
-    mask = np.zeros((bs, max_len))
-    for i in range(bs):
-        mask[i, :src_len[i]] = 1
-    return torch.from_numpy(mask).float()
-
-
 def train_one_epoch(train_loader, model, device, optimizer, criterion, args):
     losses = AverageMeter()
     model.train()
@@ -33,13 +25,11 @@ def train_one_epoch(train_loader, model, device, optimizer, criterion, args):
         mean_list = mean_list.to(device).float()
         duration = duration.to(device)
         length = length.to(device).long()
-        length_mask = create_src_key_padding_mask(length, args.max_len)
-        length_mask = length_mask.to(device)
-        length = length.to(device)
+        length_mask = length.ne(0).float().to(device)
 
 
         if args.model_type == "Transformer":
-            output, att = model(phone, mean_list, src_key_padding_mask=length)
+            output, att = model(phone, mean_list, pos=length)
         elif args.model_type == "LSTM":
             output, _ = model(phone, mean_list, src_key_padding_mask=length)
         elif args.model_type == "DNN":
@@ -75,12 +65,10 @@ def validate(dev_loader, model, device, criterion, args):
             mean_list = mean_list.to(device).float()
             duration = duration.to(device)
             length = length.to(device).long()
-            length_mask = create_src_key_padding_mask(length, args.max_len)
-            length_mask = length_mask.to(device)
-            length = length.to(device)
+            length_mask = length.ne(0).float().to(device)
 
             if args.model_type == "Transformer":
-                output, att = model(phone, mean_list, src_key_padding_mask=length)
+                output, att = model(phone, mean_list, pos=length)
             elif args.model_type == "LSTM":
                 output, _ = model(phone, mean_list, src_key_padding_mask=length)
             elif args.model_type == "DNN":
