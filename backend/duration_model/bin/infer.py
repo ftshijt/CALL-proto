@@ -36,6 +36,7 @@ parser.add_argument('--context', default=3, type=int)
 parser.add_argument('--nhead', default=4, type=int)
 parser.add_argument('--loss', default="l1", type=str)
 parser.add_argument('--use-pos-enc', default=0, type=int)
+parser.add_argument('--local_gaussian', default=False, type=bool)
 
 args = parser.parse_args()
 

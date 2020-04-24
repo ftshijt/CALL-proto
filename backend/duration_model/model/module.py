@@ -15,6 +15,7 @@ from torch.nn.init import constant_
 from torch.nn import Dropout
 from torch.nn import Linear
 from torch.nn import LayerNorm
+from torch.autograd import Variable
 import numpy as np
 import math
 import copy
@@ -73,17 +74,19 @@ class MultiheadAttention(nn.Module):
         self.num_hidden_k = num_hidden_k
         self.attn_dropout = nn.Dropout(p=0.1)
 
-    def forward(self, key, value, query, mask=None, query_mask=None):
+    def forward(self, key, value, query, mask=None, query_mask=None, gaussian_factor=None):
         # Get attention score
-        attn = t.bmm(query, key.transpose(1, 2))
+        attn = torch.bmm(query, key.transpose(1, 2))
         attn = attn / math.sqrt(self.num_hidden_k)
+        if gaussian_factor is not None:
+            attn = attn - gaussian_factor
 
         # Masking to ignore padding (key side)
         if mask is not None:
             attn = attn.masked_fill(mask, -2 ** 32 + 1)
-            attn = t.softmax(attn, dim=-1)
+            attn = torch.softmax(attn, dim=-1)
         else:
-            attn = t.softmax(attn, dim=-1)
+            attn = torch.softmax(attn, dim=-1)
 
         # Masking to ignore padding (query side)
         if query_mask is not None:
@@ -93,7 +96,7 @@ class MultiheadAttention(nn.Module):
         # attn = self.attn_dropout(attn)
         
         # Get Context Vector
-        result = t.bmm(attn, value)
+        result = torch.bmm(attn, value)
 
         return result, attn
 
@@ -102,7 +105,7 @@ class Attention(nn.Module):
     """
     Attention Network
     """
-    def __init__(self, num_hidden, h=4):
+    def __init__(self, num_hidden, h=4, local_gaussian=False):
         """
         :param num_hidden: dimension of hidden
         :param h: num of heads 
@@ -118,6 +121,12 @@ class Attention(nn.Module):
         self.query = Linear(num_hidden, num_hidden, bias=False)
 
         self.multihead = MultiheadAttention(self.num_hidden_per_attn)
+        
+        self.local_gaussian = local_gaussian
+        if local_gaussian:
+            self.local_gaussian_factor = Variable(torch.rand(1), requires_grad=True).float()
+        else:
+            self.local_gaussian_factor = None
 
         self.residual_dropout = nn.Dropout(p=0.1)
 
@@ -147,15 +156,26 @@ class Attention(nn.Module):
         value = value.permute(2, 0, 1, 3).contiguous().view(-1, seq_k, self.num_hidden_per_attn)
         query = query.permute(2, 0, 1, 3).contiguous().view(-1, seq_q, self.num_hidden_per_attn)
 
+        # add gaussian or not
+        if self.local_gaussian:
+            row = torch.arange(1, seq_k + 1).unsqueeze(0).unsqueeze(-1).repeat(batch_size * self.h, 1, seq_k)
+            col = torch.arange(1, seq_k + 1).unsqueeze(0).unsqueeze(0).repeat(batch_size * self.h, seq_k, 1)
+            local_gaussian = torch.pow(row - col, 2).float().to(key.device.type)
+            self.local_gaussian_factor = self.local_gaussian_factor.to(key.device.type)
+            local_gaussian = local_gaussian / self.local_gaussian_factor
+        else:
+            local_gaussian = None
+
         # Get context vector
-        result, attns = self.multihead(key, value, query, mask=mask, query_mask=query_mask)
+        result, attns = self.multihead(key, value, query, mask=mask, query_mask=query_mask,
+                                      gaussian_factor=local_gaussian)
 
         # Concatenate all multihead context vector
         result = result.view(self.h, batch_size, seq_q, self.num_hidden_per_attn)
         result = result.permute(1, 2, 0, 3).contiguous().view(batch_size, seq_q, -1)
         
         # Concatenate context vector with input (most important)
-        result = t.cat([decoder_input, result], dim=-1)
+        result = torch.cat([decoder_input, result], dim=-1)
         
         # Final linear
         result = self.final_linear(result)
@@ -182,9 +202,10 @@ class TransformerEncoderLayer(Module):
         activation: the activation function of intermediate layer, relu or gelu (default=relu).
     """
 
-    def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1, activation="relu", device="cuda"):
+    def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1, activation="relu", device="cuda",
+                 local_gaussian=False):
         super(TransformerEncoderLayer, self).__init__()
-        self.self_attn = Attention(h=nhead, num_hidden=d_model)
+        self.self_attn = Attention(h=nhead, num_hidden=d_model, local_gaussian=local_gaussian)
         # Implementation of Feedforward model
         self.linear1 = Linear(d_model, dim_feedforward)
         self.dropout = Dropout(dropout)
@@ -202,7 +223,7 @@ class TransformerEncoderLayer(Module):
             state['activation'] = F.relu
         super(TransformerEncoderLayer, self).__setstate__(state)
 
-    def forward(self, src, src_mask=True, src_key_padding_mask=None):
+    def forward(self, src, src_mask=None, src_key_padding_mask=None):
         # type: (Tensor, Optional[Tensor], Optional[Tensor]) -> Tensor
         r"""Pass the input through the encoder layer.
 
@@ -215,8 +236,8 @@ class TransformerEncoderLayer(Module):
             see the docs in Transformer class.
         """
 
-        src2, att_weight = self.self_attn(src, src, src, unseen_mask=src_mask,
-                              src_lengths=src_key_padding_mask)
+        src2, att_weight = self.self_attn(src, src, query_mask=src_mask,
+                              mask=src_key_padding_mask)
         src = src + self.dropout1(src2)
         src = self.norm1(src)
         src2 = self.linear2(self.dropout(self.activation(self.linear1(src))))
@@ -243,7 +264,7 @@ class TransformerEncoder(Module):
         self.num_layers = num_layers
         self.norm = norm
 
-    def forward(self, src, mask=True, src_key_padding_mask=None):
+    def forward(self, src, mask=None, src_key_padding_mask=None):
         # type: (Tensor, Optional[Tensor], Optional[Tensor]) -> Tensor
         r"""Pass the input through the encoder layers in turn.
 
@@ -302,7 +323,7 @@ class Transformer(nn.Module):
             if p.dim() > 1:
                 xavier_uniform_(p)
 
-    def forward(self, src, src_mask=True, src_key_padding_mask=None):
+    def forward(self, src, src_mask=None, src_key_padding_mask=None):
         src = torch.transpose(src, 0, 1)
         embed = self.input_fc(src)
         embed = self.input_norm(embed)
@@ -315,7 +336,6 @@ class Transformer(nn.Module):
             embed,
             mask=src_mask,
             src_key_padding_mask=src_key_padding_mask)
-        print(memory.size())
         output = self.postnet(memory)
         output = torch.transpose(output, 0, 1)
         return output, att_weight

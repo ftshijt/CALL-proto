@@ -29,6 +29,7 @@ def infer(args):
                                 d_output=1,
                                 nhead=args.nhead,
                                 num_block=args.num_block,
+                                local_gaussian=args.local_gaussian,
                                 pos_enc=True)
     else:
         raise ValueError('Not Support Model Type %s' % args.model_type)

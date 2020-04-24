@@ -23,7 +23,7 @@ class DurationCollator(object):
         mean_list = []
         phone = np.zeros((batch_size, self.max_len))
         duration = np.zeros((batch_size, self.max_len))
-        length_mask = np.zeros((batch_size, self.max_range))
+        length_mask = np.zeros((batch_size, self.max_len))
 
         for i in range(batch_size):
             length = min(len_list[i], self.max_len)

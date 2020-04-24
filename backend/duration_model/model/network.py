@@ -25,7 +25,7 @@ class TransformerDuration(Module):
     def __init__(self, embed_size=512, d_model=512, d_output=1,
                  nhead=4, num_block=6, phone_size=87,
                  dim_feedforward=2048, dropout=0.1, pos_enc=True,
-                 device="cuda"):
+                 local_gaussian=False, device="cuda"):
         super(TransformerDuration, self).__init__()
 
         self.input_embed = nn.Embedding(phone_size, embed_size)
@@ -33,7 +33,8 @@ class TransformerDuration(Module):
         self.speed_fc = nn.Linear(1, d_model)
         self.pos_encoder = module.PositionalEncoding(d_model, dropout)
         encoder_layer = module.TransformerEncoderLayer(
-            d_model, nhead, dim_feedforward, dropout, device=device)
+            d_model, nhead, dim_feedforward, dropout, device=device,
+            local_gaussian=local_gaussian)
         self.input_norm = LayerNorm(d_model)
         encoder_norm = LayerNorm(d_model)
         self.encoder = module.TransformerEncoder(
@@ -48,8 +49,8 @@ class TransformerDuration(Module):
 
     def forward(self, src, speed, pos):
         if self.training:
-            src_mask = pos.ne(0).type(t.float)
-            src_key_padding_mask = pos.eq(0).unsqueeze(1).repeat(1, x.size(1), 1)
+            src_mask = pos.ne(0).type(torch.float)
+            src_key_padding_mask = pos.eq(0).unsqueeze(1).repeat(1, src.size(1), 1)
 
         else:
             src_mask, src_key_padding_mask = None, None

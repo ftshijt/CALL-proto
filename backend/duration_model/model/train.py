@@ -57,6 +57,7 @@ def train(args):
                                 d_output=1,
                                 nhead=args.nhead,
                                 num_block=args.num_block,
+                                local_gaussian=args.local_gaussian,
                                 pos_enc=True)
     elif args.model_type == "LSTM":
         model = LSTMDuration(phone_size=args.phone_size,
@@ -74,21 +75,31 @@ def train(args):
     print(model)
     model = model.to(device)
 
-    # load weights for pre-trained model
+    model_load_dir = ""
+    start_epoch = 1
     if args.initmodel != '':
-        pretrain = torch.load(args.initmodel, map_location=device)
-        pretrain_dict = pretrain['state_dict']
+        model_load_dir = args.initmodel
+    if args.resume:
+        checks = os.listdir(args.model_save_dir)
+        start_epoch = max(list(map(lambda x: int(x[6:-8]) if x.endswith("pth.tar") else -1, checks)))
+        model_load_dir = "{}/epoch_{}.pth.tar".format(args.model_save_dir, start_epoch)
+
+
+    # load weights for pre-trained model
+    if model_load_dir != '':
+        model_load = torch.load(model_load_dir, map_location=device)
+        loading_dict = model_load['state_dict']
         model_dict = model.state_dict()
         state_dict_new = {}
         para_list = []
-        for k, v in pretrain_dict.items():
+        for k, v in loading_dict.items():
             assert k in model_dict
-            if model_dict[k].size() == pretrain_dict[k].size():
+            if model_dict[k].size() == loading_dict[k].size():
                 state_dict_new[k] = v
             else:
                 para_list.append(k)
         print("Total {} parameters, Loaded {} parameters".format(
-            len(pretrain_dict), len(state_dict_new)))
+            len(loading_dict), len(state_dict_new)))
         if len(para_list) > 0:
             print("Not loading {} because of different sizes".format(
                 ", ".join(para_list)))
@@ -96,7 +107,6 @@ def train(args):
         model.load_state_dict(model_dict)
         print("Loaded checkpoint {}".format(args.initmodel))
         print("")
-
 
     # setup optimizer
     if args.optimizer == 'noam':
@@ -131,7 +141,7 @@ def train(args):
         raise ValueError("Not Support Loss Type")
     
     # Training
-    for epoch in range(1, 1 + args.max_epochs):
+    for epoch in range(1 + start_epoch, 1 + args.max_epochs):
         start_t_train = time.time()
         train_info = train_one_epoch(train_loader, model, device, optimizer, loss, args)
         end_t_train = time.time()

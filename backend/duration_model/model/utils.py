@@ -58,6 +58,8 @@ def train_one_epoch(train_loader, model, device, optimizer, criterion, args):
 def validate(dev_loader, model, device, criterion, args):
     losses = AverageMeter()
     model.eval()
+    if not os.path.exists(args.model_save_dir):
+        os.makedirs(args.model_save_dir)
 
     with torch.no_grad():
         for step, (phone, mean_list, duration, length) in enumerate(dev_loader, 1):
@@ -76,18 +78,24 @@ def validate(dev_loader, model, device, criterion, args):
                 output = model(phone, mean_list)
             val_loss = criterion(output, duration, length_mask)
             losses.update(val_loss.item(), phone.size(0))
-            if step % 100 == 0 and args.model_type == "Transformer":
-                length = length.cpu().detach().numpy()[0]
-                att = att.cpu().detach().numpy()[0]
-                att = att[:, :length, :length]
+            if step % 10 == 0 and args.model_type == "Transformer":
+                
+                length = int(np.sum(length.cpu().ne(0).float().detach().numpy()[0]))
+                phone_seq = map(str, list(phone.cpu().detach().numpy()[0]))
+                text = " ".join(phone_seq)
+                text_file = open(os.path.join(args.model_save_dir, "{}.txt".format(step)), "w")
+                text_file.write(text)
+                text_file.close()
+                att = att.cpu().detach().numpy()
+                att = att[:, :length, :length].reshape((args.nhead, args.batchsize, length, length))
                 plt.subplot(1, 4, 1)
-                specshow(att[0])
+                specshow(att[0, 0])
                 plt.subplot(1, 4, 2)
-                specshow(att[1])
+                specshow(att[1, 0])
                 plt.subplot(1, 4, 3)
-                specshow(att[2])
+                specshow(att[2, 0])
                 plt.subplot(1, 4, 4)
-                specshow(att[3])
+                specshow(att[3, 0])
                 plt.savefig(os.path.join(args.model_save_dir, '{}_att.png'.format(step)))
                 print("step {}: {}".format(step, losses.avg))
 

@@ -20,7 +20,7 @@ parser.add_argument('--model-type', default='Transformer',
                     help='Type of model (Transformer or LSTM)')
 parser.add_argument('--initmodel', '-m', default='',
                     help='Initialize the model from given file')
-parser.add_argument('--resume', '-r', default='',
+parser.add_argument('--resume', default=False, type=bool,
                     help='Resume the optimization from snapshot')
 parser.add_argument('--gpu', '-g', default=-1, type=int,
                     help='GPU ID (negative value indicates CPU)')
@@ -54,6 +54,7 @@ parser.add_argument('--noam-warmup-steps', default=25000, type=float)
 parser.add_argument('--loss', default="l1", type=str)
 parser.add_argument('--use-pos-enc', default=0, type=int)
 parser.add_argument('--gradient-accumulation-steps', default=1, type=int)
+parser.add_argument('--local_gaussian', default=False, type=bool)
 
 args = parser.parse_args()
 
