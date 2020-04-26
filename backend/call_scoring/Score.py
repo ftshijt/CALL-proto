@@ -23,13 +23,15 @@ class Score():
         self.kaldi_workspace = kaldi_workspace
         self.utt_id = utt_id
         self.exp_path = "tdnn-XXX"
-        self.flag_version = False
+        self.flag_version = flag_version
         os.system("export PATH=%s:$PATH" % kaldi_workspace)
         # ...
 
     def CleanText(self, text):
-        punctuation = '.!,;:?"\''
-        text = re.sub(r'[{}]+'.format(punctuation),'',text)
+        punctuation = '.!,;:?"'
+        Space = '  '
+        text = re.sub(r'[{}]+'.format(punctuation),' ',text)
+        text = re.sub(r'[{}]+'.format(Space),' ',text)
         return text.strip().upper()
 
     def Word2Phone(self, lexicon, phones, flag_version):
@@ -301,7 +303,19 @@ class Score():
       #  aligned_result_iner = self.AlginFixedSilence(post_probs, t2p)
         return aligned_result_iner
 
-    def PScore(self, prob_segment, phone_id):
+    def calcShannonEntropy(self, frame):  # in bit
+        entropy = 0.0
+        for x_value in frame:
+            p = x_value
+            log_p = np.log2(p)
+            entropy -= p * log_p
+        return entropy
+
+    def softmax(self, x):
+        e_x = np.exp(x - np.max(x))
+        return e_x / e_x.sum()
+
+    def PScore_GOP(self, prob_segment, phone_id):
         ### Nan
         prob_segment_log = np.log(np.array(prob_segment))
         prob_segment_logSum = np.sum(prob_segment_log, axis=0)
@@ -309,9 +323,34 @@ class Score():
         ###
         if len(prob_segment) == 0:
             return 0
+        entropy_list = None
+        score_prob = prob_segment
+        target_result = []
+        for prob in score_prob:
+            if prob[phone_id - 1] > 0.5:
+                target_result.append(100)
+            else:
+                if prob[phone_id - 1] < 1e-8:
+                    target_result.append(0)
+                    continue
+                target_result.append(math.log(max(prob)) / math.log(prob[phone_id-1]) * 100)
+        target_result = sorted(target_result)
+        return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4), phone_read, entropy_list
+
+
+    def PScore_sGOP(self, prob_segment, phone_id):
+        ### Nan
+        prob_segment_log = np.log(np.array(prob_segment))
+        prob_segment_logSum = np.sum(prob_segment_log, axis=0)
+        phone_read = np.argmax(prob_segment_logSum) + 1
+        ###
+        if len(prob_segment) == 0:
+            return 0
+        entropy_list = None
         length =len(prob_segment)
         score_start = math.floor(length / 4)
         score_end = min(math.floor(3 * length / 4) + 1, length)
+
         score_prob = prob_segment[score_start:score_end]
         target_result = []
         for prob in score_prob:
@@ -321,9 +360,152 @@ class Score():
                 if prob[phone_id - 1] < 1e-8:
                     target_result.append(0)
                     continue
-                target_result.append(math.log(max(prob)) / math.log(prob[phone_id]) * 100)
+                target_result.append(math.log(max(prob)) / math.log(prob[phone_id-1]) * 100)
         target_result = sorted(target_result)
-        return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4), phone_read
+        return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4), phone_read, entropy_list
+
+
+    def PScore_EntGOP(self, prob_segment, phone_id):
+        ### Nan
+        prob_segment_log = np.log(np.array(prob_segment))
+        prob_segment_logSum = np.sum(prob_segment_log, axis=0)
+        phone_read = np.argmax(prob_segment_logSum) + 1
+        ###
+        if len(prob_segment) == 0:
+            return 0
+        length =len(prob_segment)
+        ### Nan: Entropy part
+        entropy_list = []
+        for i in range(length):
+            ent = self.calcShannonEntropy(prob_segment[i])
+            entropy_list.append(ent)
+        MaxEnt_ind = entropy_list.index(min(entropy_list))
+        if (MaxEnt_ind - math.ceil(length / 4)) >= 0:
+            if (MaxEnt_ind + math.ceil(length / 4)) <= length:
+                score_start = MaxEnt_ind - math.ceil(length / 4)
+                score_end = MaxEnt_ind + math.ceil(length / 4)
+            else:
+                score_start = math.ceil(length / 2)
+                score_end = length
+        else:
+            score_start = 0
+            if (math.ceil(length / 2)) <= length:
+                score_end = math.ceil(length / 2)
+            else:
+                score_end = length
+
+        ####
+        score_prob = prob_segment[score_start:score_end]
+        target_result = []
+        for prob in score_prob:
+            if prob[phone_id - 1] > 0.5:
+                target_result.append(100)
+            else:
+                if prob[phone_id - 1] < 1e-8:
+                    target_result.append(0)
+                    continue
+                target_result.append(math.log(max(prob)) / math.log(prob[phone_id-1]) * 100)
+        target_result = sorted(target_result)
+        return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4), phone_read, entropy_list
+
+
+    def PScore_wGOP_linear(self, prob_segment, phone_id):
+        ### Nan
+        prob_segment_log = np.log(np.array(prob_segment))
+        prob_segment_logSum = np.sum(prob_segment_log, axis=0)
+        phone_read = np.argmax(prob_segment_logSum) + 1
+        ###
+        if len(prob_segment) == 0:
+            return 0
+        length =len(prob_segment)
+        ### linear
+        score_prob = prob_segment
+        phones_prob = np.sum(prob_segment, axis=0) / length
+        for phone in range(len(phones_prob)):
+            weight_phone = 0
+            for i in (list(range(phone)) + list(range(phone+1, len(phones_prob)))):
+                weight_phone += phones_prob[phone] / (phones_prob[phone] + phones_prob[i])
+            weight_phone = weight_phone / (len(phones_prob)-1)
+            score_prob[:, phone] = weight_phone * score_prob[:, phone]
+        ###
+        target_result = []
+        for prob in score_prob:
+            if prob[phone_id - 1] > 0.5:
+                target_result.append(100)
+            else:
+                if prob[phone_id - 1] < 1e-8:
+                    target_result.append(0)
+                    continue
+                target_result.append(math.log(max(prob)) / math.log(prob[phone_id-1]) * 100)
+        target_result = sorted(target_result)
+        entropy_list = None
+        return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4), phone_read, entropy_list
+
+
+    def PScore_wGOP_softmax(self, prob_segment, phone_id):
+        ### Nan
+        prob_segment_log = np.log(np.array(prob_segment))
+        prob_segment_logSum = np.sum(prob_segment_log, axis=0)
+        phone_read = np.argmax(prob_segment_logSum) + 1
+        ###
+        if len(prob_segment) == 0:
+            return 0
+        length =len(prob_segment)
+        ### Nan: Entropy part
+        entropy_list = []
+        for i in range(length):
+            ent = self.calcShannonEntropy(prob_segment[i])
+            entropy_list.append(ent)
+        ### SoftMax
+        SoftMax_list = self.softmax(entropy_list)
+        score_prob = prob_segment
+        for i in range(length):
+            score_prob[i] = score_prob[i] / SoftMax_list[i]
+        ###
+        target_result = []
+        for prob in score_prob:
+            if prob[phone_id - 1] > 0.5:
+                target_result.append(100)
+            else:
+                if prob[phone_id - 1] < 1e-8:
+                    target_result.append(0)
+                    continue
+                target_result.append(math.log(max(prob)) / math.log(prob[phone_id-1]) * 100)
+        target_result = sorted(target_result)
+        return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4), phone_read, entropy_list
+
+
+    def PScore_wGOP_reciprocal(self, prob_segment, phone_id):
+        ### Nan
+        prob_segment_log = np.log(np.array(prob_segment))
+        prob_segment_logSum = np.sum(prob_segment_log, axis=0)
+        phone_read = np.argmax(prob_segment_logSum) + 1
+        ###
+        if len(prob_segment) == 0:
+            return 0
+        length =len(prob_segment)
+        ### Nan: Entropy part
+        entropy_list = []
+        for i in range(length):
+            ent = self.calcShannonEntropy(prob_segment[i])
+            entropy_list.append(ent)
+        ### reciprocal
+        score_prob = prob_segment
+        for i in range(length):
+            score_prob[i] = score_prob[i] / entropy_list[i]
+        ###
+        target_result = []
+        for prob in score_prob:
+            if prob[phone_id - 1] > 0.5:
+                target_result.append(100)
+            else:
+                if prob[phone_id - 1] < 1e-8:
+                    target_result.append(0)
+                    continue
+                target_result.append(math.log(max(prob)) / math.log(prob[phone_id-1]) * 100)
+        target_result = sorted(target_result)
+        return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4), phone_read, entropy_list
+
 
     def CalcFluency(self, result_dict, ar):
         if len(result_dict["words"]) == 1:
@@ -339,8 +521,8 @@ class Score():
 
         return fluency
 
-    def CalcScores(self, audio, text, flag_version):
-        post_probs = self.KaldiInfer(audio, flag_version)
+    def CalcScores(self, audio, text):
+        post_probs = self.KaldiInfer(audio)
         t2p = self.Text2Phone(text)
         aligned_result = self.Align(post_probs, t2p)
         text = self.CleanText(text)
@@ -371,7 +553,10 @@ class Score():
         while ar[align_position] == 1:
             align_position += 1
         template_position += 1
-
+        ### Nan: save Entropy_list
+        Ent_file = open('Entropy_1.txt', 'w')
+        Ent_list_all = []
+        ###
         for word in words:
             word_dict = {}
             word_dict["word"] = word
@@ -393,9 +578,16 @@ class Score():
                 while align_position < len(ar) and ar[align_position] == template[template_position]:
                     align_position += 1
                 phone_dict["end"] = align_position
-                phone_dict["score"], phone_read = self.PScore(prob[phone_dict["start"]:phone_dict["end"]], template[template_position])
+                phone_dict["score"], phone_read, entropy_list = self.PScore_wGOP_linear(prob[phone_dict["start"]:phone_dict["end"]], template[template_position])
+                if entropy_list == None:
+                    Ent_list_all = None
+                else:
+                    entropy_list.insert(0, phone_dict["phone"]) 
+                    entropy_list.insert(0, word_dict["word"]) 
                # if '0' in phone_dict["phone"] or '1' in phone_dict["phone"] or '2' in phone_dict["phone"]:
                ### Nan
+                if entropy_list != None:
+                    Ent_list_all.append(entropy_list)
                 if len(phone_dict["phone"]) > 2:
                     if len(str(reverse_phone[phone_read])) > 2 and phone_dict["phone"][:-1] == str(reverse_phone[phone_read])[:-1]:
                         proun_eval = phone_dict["phone"] + ' was read as ' + str(reverse_phone[phone_read])
@@ -423,6 +615,15 @@ class Score():
             word_dict["start"] = (word_dict["phones"])[0]["start"]
             word_dict["end"] = (word_dict["phones"])[-1]["end"]
             result_dict["words"].append(word_dict)
+        ### Nan: save Entropy_list
+        if Ent_list_all != None:
+            for ent_list in Ent_list_all:
+                Ent_str = list(map(str, ent_list))
+                Ent_str_t = "\t".join(Ent_str)
+                Ent_file.write(Ent_str_t)
+                Ent_file.write('\n')
+        Ent_file.close() 
+        ###
         word_score = []
         inter_word = 0
         phones_count = 0
@@ -443,7 +644,7 @@ class Score():
         return output
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  ### Need to change Entropy saving path above
     parser = argparse.ArgumentParser()
     parser.add_argument('lexiconaddr', type=str, help='the addr of lexicon')
     parser.add_argument('phonesaddr', type=str, help='the addr of phones')
@@ -453,16 +654,16 @@ if __name__ == "__main__":
     parser.add_argument('--version', type=bool, default = False, help='Version 1 or 2')
     args = parser.parse_args()
 
-  #  text = 'Did you hear that Daniel made the cut to Varsity Track and Field?'
-   #  text = "I have to study for my AP Calculus test."
+    text = 'Did you hear that Daniel made the cut to Varsity Track and Field?'
+   # text = "I have to study for my AP Calculus test."
    # text = "He scored three amazing goals in yesterday's game."
-    text =  "Do you know where the Emergency Room is located?"
-  #  text = "hello, how are you doing?"
+   # text =  "Do you know where the Emergency Room is located?"
+   # text = "hello, how are you doing?"
 
-    audio = '/home/nan/CALL-proto/Fun-emes/django_project/microphone-results_4.wav'
+    audio = '/home/nan/CALL-proto/Fun-emes/django_project/microphone-results_1.wav'
     Score_test = Score(args.lexiconaddr, args.phonesaddr, args.sr, args.kaldi_workspace, args.utt_id, args.version)
    # score_output, utt_id = Score_test.CalcScores(audio, text)
-    score_output = Score_test.CalcScores(audio, text, args.version)
+    score_output = Score_test.CalcScores(audio, text)
     wav_id = PackZero(args.utt_id, 6)
 #### should remove test_
     json.dump(score_output, open("/home/nan/CALL-proto/Fun-emes/django_project/test_score_wav%s.json"%wav_id, "w", encoding="utf-8"))
