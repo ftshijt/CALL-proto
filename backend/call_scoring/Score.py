@@ -17,12 +17,13 @@ def PackZero(integer, size):
 
 
 class Score():
-    def __init__(self, lexicon, phones, sr, kaldi_workspace, utt_id, flag_version):
+    def __init__(self, lexicon, phones, sr, kaldi_workspace, utt_id, flag_version=False):
         self.phone_dict, self.w2p = self.Word2Phone(lexicon, phones, flag_version)
         self.sr = sr
         self.kaldi_workspace = kaldi_workspace
         self.utt_id = utt_id
         self.exp_path = "tdnn-XXX"
+        self.flag_version = False
         os.system("export PATH=%s:$PATH" % kaldi_workspace)
         # ...
 
@@ -133,6 +134,7 @@ class Score():
             os.makedirs(data_path)
         wav_file = os.path.join(data_path, "%s.wav"%wav_id)
         frame, sr = librosa.load(audio)
+        frame, _ = librosa.effects.trim(frame)
         frame = librosa.resample(frame, sr, self.sr)
         sf.write(wav_file, frame, self.sr, subtype='PCM_16')
 
@@ -149,7 +151,11 @@ class Score():
         text.close()
         spk2utt.close()
 
-    def KaldiInfer(self, audio, flag_version):
+        # create post template
+        os.system("cp -r %s %s" %(os.path.join(self.kaldi_workspace, "data/audio_template_post"), 
+            data_path + "_post"))
+
+    def KaldiInfer(self, audio):
         wav_id = PackZero(self.utt_id, size=6)
         self.CreateTestEnv(audio, wav_id)
         audio_path = "audio_%s"%PackZero(self.utt_id, size=6)
@@ -173,7 +179,7 @@ class Score():
        # print(post_numpy.shape)
         self.utt_id += 1
         ### Nan
-        if flag_version:
+        if self.flag_version:
            del_list = [5,9,13,17,21,25,33,37,41,48,52,62,66,76,80]
            del_list_all = [3,4,5,7,8,9,11,12,13,15,16,17,19,20,21,23,24,25,31,32,33,35,36,37,39,40,41,46,47,48,50,51,52,60,61,62,64,65,66,74,75,76,78,79,80]
            for i in del_list:
@@ -293,10 +299,14 @@ class Score():
 
       #  aligned_result_iner = self.AlginOptionalSilence_v2(post_probs, t2p)
       #  aligned_result_iner = self.AlginFixedSilence(post_probs, t2p)
-
         return aligned_result_iner
 
     def PScore(self, prob_segment, phone_id):
+        ### Nan
+        prob_segment_log = np.log(np.array(prob_segment))
+        prob_segment_logSum = np.sum(prob_segment_log, axis=0)
+        phone_read = np.argmax(prob_segment_logSum) + 1
+        ###
         if len(prob_segment) == 0:
             return 0
         length =len(prob_segment)
@@ -313,7 +323,7 @@ class Score():
                     continue
                 target_result.append(math.log(max(prob)) / math.log(prob[phone_id]) * 100)
         target_result = sorted(target_result)
-        return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4)
+        return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4), phone_read
 
     def CalcFluency(self, result_dict, ar):
         if len(result_dict["words"]) == 1:
@@ -383,7 +393,23 @@ class Score():
                 while align_position < len(ar) and ar[align_position] == template[template_position]:
                     align_position += 1
                 phone_dict["end"] = align_position
-                phone_dict["score"] = self.PScore(prob[phone_dict["start"]:phone_dict["end"]], template[template_position])
+                phone_dict["score"], phone_read = self.PScore(prob[phone_dict["start"]:phone_dict["end"]], template[template_position])
+               # if '0' in phone_dict["phone"] or '1' in phone_dict["phone"] or '2' in phone_dict["phone"]:
+               ### Nan
+                if len(phone_dict["phone"]) > 2:
+                    if len(str(reverse_phone[phone_read])) > 2 and phone_dict["phone"][:-1] == str(reverse_phone[phone_read])[:-1]:
+                        proun_eval = phone_dict["phone"] + ' was read as ' + str(reverse_phone[phone_read])
+                    if len(str(reverse_phone[phone_read])) > 2 and phone_dict["phone"][:-1] != str(reverse_phone[phone_read])[:-1]:
+                        proun_eval = phone_dict["phone"][:-1] + ' was read as ' + str(reverse_phone[phone_read])[:-1]
+                    if len(str(reverse_phone[phone_read])) <= 2:
+                        proun_eval = phone_dict["phone"][:-1] + ' was read as ' + str(reverse_phone[phone_read])
+                if len(phone_dict["phone"]) <= 2:
+                    if len(str(reverse_phone[phone_read])) > 2:
+                        proun_eval = phone_dict["phone"] + ' was read as ' + str(reverse_phone[phone_read])[:-1]
+                    if len(str(reverse_phone[phone_read])) <= 2:
+                        proun_eval = phone_dict["phone"] + ' was read as ' + str(reverse_phone[phone_read])
+               ###
+                phone_dict["Evaluation"] = proun_eval
                 word_dict["phones"].append(phone_dict)
                 template_position += 1
             vowels = []
@@ -427,9 +453,13 @@ if __name__ == "__main__":
     parser.add_argument('--version', type=bool, default = False, help='Version 1 or 2')
     args = parser.parse_args()
 
-   # text = "hello, how are you doing?"
-    text = "I have to study for my AP Calculus test."
-    audio = '/home/nan/CALL-proto/Fun-emes/django_project/microphone-results.wav'
+  #  text = 'Did you hear that Daniel made the cut to Varsity Track and Field?'
+   #  text = "I have to study for my AP Calculus test."
+   # text = "He scored three amazing goals in yesterday's game."
+    text =  "Do you know where the Emergency Room is located?"
+  #  text = "hello, how are you doing?"
+
+    audio = '/home/nan/CALL-proto/Fun-emes/django_project/microphone-results_4.wav'
     Score_test = Score(args.lexiconaddr, args.phonesaddr, args.sr, args.kaldi_workspace, args.utt_id, args.version)
    # score_output, utt_id = Score_test.CalcScores(audio, text)
     score_output = Score_test.CalcScores(audio, text, args.version)

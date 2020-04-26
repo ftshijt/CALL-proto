@@ -1,0 +1,17 @@
+train: /export/c04/jiatong/project/ai_system/CALL-proto/data/train_960.ali
+val: /export/c04/jiatong/project/ai_system/CALL-proto/data/dev.ali
+# train: /export/c04/jiatong/project/ai_system/CALL-proto/data/debug.ali
+# val: /export/c04/jiatong/project/ai_system/CALL-proto/data/debug.ali
+
+model_save_dir: exp/dnn
+model_type: DNN
+max_epochs: 50
+lr: 0.01
+optimizer: adam
+max_len: 100
+batchsize: 64
+num_workers: 4
+
+context: 3
+hidden_size: 1024
+

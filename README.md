@@ -1,12 +1,13 @@
 # CALL-proto
 A prototype works on computer assisted language learning (CALL)
-The writeup for HW4 updates are located in the doc/ folder
 
 ## Document
 doc/UI flow.pptx \
 doc/Backend-Design-0309-2020.pdf \
 doc/Backend-Design-Assignment4.pdf \
-doc/Frontend-Design-Assignment4.pdf
+doc/Frontend-Design-Assignment4.pdf \
+doc/Frontend-Design-Assignment5.pdf \
+doc/HW5\_backend.pdf
 
 ## Environment Install
 

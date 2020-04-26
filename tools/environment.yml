@@ -17,4 +17,5 @@ dependencies:
     - yamlargparse
     - SpeechRecognition
     - pyaudio
+    - django
     - gTTS
