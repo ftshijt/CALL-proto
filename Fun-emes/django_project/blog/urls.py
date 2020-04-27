@@ -8,4 +8,5 @@ urlpatterns = [
         path('given_sentence/', views.given_sentence, name='given_sentence'),
         path('profile/', views.profile, name='profile'),
         path('feedback/', views.feedback, name='feedback'),
+        path('to_post/', views.to_post, name='to_post'),
 ]
