@@ -60,26 +60,47 @@ with open('rater3.tsv') as rater3:
     IDs_3 = IDs_3[1:]
 
 
-with open('score_ent_GOP.csv') as ent_GOP:
-    ent_GOP_pron = []
-    ent_GOP_fluency = []
-    ent_GOP_integrity = []
+with open('score_fixTAGOP.csv') as fixTAGOP:
+    fixTAGOP_pron = []
+    fixTAGOP_fluency = []
+    fixTAGOP_integrity = []
     IDs = []
-    ent_GOP_reader = csv.reader(ent_GOP)
-    for row in ent_GOP_reader:
-        ent_GOP_pron.append(row[1])
-        ent_GOP_fluency.append(row[2])
-        ent_GOP_integrity.append(row[3])
+    fixTAGOP_reader = csv.reader(fixTAGOP)
+    for row in fixTAGOP_reader:
+        fixTAGOP_pron.append(row[1])
+        fixTAGOP_fluency.append(row[2])
+        fixTAGOP_integrity.append(row[3])
         IDs.append(row[0])
 
-    ent_GOP_pron = list(map(float,ent_GOP_pron[1:]))
-    ent_GOP_fluency = list(map(float,ent_GOP_fluency[1:]))
-    ent_GOP_integrity = list(map(float,ent_GOP_integrity[1:]))
+    fixTAGOP_pron = list(map(float,fixTAGOP_pron[1:]))
+    fixTAGOP_fluency = list(map(float,fixTAGOP_fluency[1:]))
+    fixTAGOP_integrity = list(map(float,fixTAGOP_integrity[1:]))
     IDs = IDs[1:]
 
-    ent_GOP_pron = list(ent_GOP_pron[i]/10 for i in range(len(ent_GOP_pron)))
-    ent_GOP_fluency = list(ent_GOP_fluency[i]/10 for i in range(len(ent_GOP_fluency)))
-    ent_GOP_integrity = list(ent_GOP_integrity[i]/10 for i in range(len(ent_GOP_integrity)))
+    fixTAGOP_pron = list(fixTAGOP_pron[i]/10 for i in range(len(fixTAGOP_pron)))
+    fixTAGOP_fluency = list(fixTAGOP_fluency[i]/10 for i in range(len(fixTAGOP_fluency)))
+    fixTAGOP_integrity = list(fixTAGOP_integrity[i]/10 for i in range(len(fixTAGOP_integrity)))
+
+with open('score_fixTAGOP_weighted.csv') as fixTAGOP_weighted:
+    fixTAGOP_weighted_pron = []
+    fixTAGOP_weighted_fluency = []
+    fixTAGOP_weighted_integrity = []
+    IDs = []
+    fixTAGOP_weighted_reader = csv.reader(fixTAGOP_weighted)
+    for row in fixTAGOP_weighted_reader:
+        fixTAGOP_weighted_pron.append(row[1])
+        fixTAGOP_weighted_fluency.append(row[2])
+        fixTAGOP_weighted_integrity.append(row[3])
+        IDs.append(row[0])
+
+    fixTAGOP_weighted_pron = list(map(float,fixTAGOP_weighted_pron[1:]))
+    fixTAGOP_weighted_fluency = list(map(float,fixTAGOP_weighted_fluency[1:]))
+    fixTAGOP_weighted_integrity = list(map(float,fixTAGOP_weighted_integrity[1:]))
+    IDs = IDs[1:]
+
+    fixTAGOP_weighted_pron = list(fixTAGOP_weighted_pron[i]/10 for i in range(len(fixTAGOP_weighted_pron)))
+    fixTAGOP_weighted_fluency = list(fixTAGOP_weighted_fluency[i]/10 for i in range(len(fixTAGOP_weighted_fluency)))
+    fixTAGOP_weighted_integrity = list(fixTAGOP_weighted_integrity[i]/10 for i in range(len(fixTAGOP_weighted_integrity)))
 
 
 with open('score_GOP.csv') as GOP:
@@ -125,7 +146,7 @@ with open('score_sGOP.csv') as sGOP:
     sGOP_fluency = list(sGOP_fluency[i]/10 for i in range(len(sGOP_fluency)))
     sGOP_integrity = list(sGOP_integrity[i]/10 for i in range(len(sGOP_integrity)))
 
-with open('score_TA_GOP.csv') as TAGOP:
+with open('score_TAGOP.csv') as TAGOP:
     TAGOP_pron = []
     TAGOP_fluency = []
     TAGOP_integrity = []
@@ -226,7 +247,7 @@ print (counter)
 
 
 
-path = "Similarity_round.csv"
+path = "Similarity_3.csv"
 with open(path,'w') as f:
     csv_write = csv.writer(f)
     csv_head = ['method/sim', 'pearsonr', 'spearmanr', 'MIC']
@@ -251,10 +272,15 @@ pron_pearsonr_R1_R3 = scipy.stats.pearsonr(rater3_pron, rater1_pron[:len(rater3_
 pron_pearsonr_R2_R3 = scipy.stats.pearsonr(rater3_pron, rater2_pron[:len(rater3_pron)])
 pron_pearsonr_R = (pron_pearsonr_R1_R2[0] + pron_pearsonr_R1_R3[0] + pron_pearsonr_R2_R3[0]) / 3
 
-pron_pearsonr_ent_R1 = scipy.stats.pearsonr(rater1_pron, ent_GOP_pron[:len(rater1_pron)])
-pron_pearsonr_ent_R2 = scipy.stats.pearsonr(rater2_pron, ent_GOP_pron[:len(rater2_pron)])
-pron_pearsonr_ent_R3 = scipy.stats.pearsonr(rater3_pron, ent_GOP_pron[:len(rater3_pron)])
-pron_pearsonr_fixTA = (pron_pearsonr_ent_R1[0] + pron_pearsonr_ent_R2[0] + pron_pearsonr_ent_R3[0]) / 3
+pron_pearsonr_fixTA_R1 = scipy.stats.pearsonr(rater1_pron, fixTAGOP_pron[:len(rater1_pron)])
+pron_pearsonr_fixTA_R2 = scipy.stats.pearsonr(rater2_pron, fixTAGOP_pron[:len(rater2_pron)])
+pron_pearsonr_fixTA_R3 = scipy.stats.pearsonr(rater3_pron, fixTAGOP_pron[:len(rater3_pron)])
+pron_pearsonr_fixTA = (pron_pearsonr_fixTA_R1[0] + pron_pearsonr_fixTA_R2[0] + pron_pearsonr_fixTA_R3[0]) / 3
+
+pron_pearsonr_weightedfixTA_R1 = scipy.stats.pearsonr(rater1_pron, fixTAGOP_weighted_pron[:len(rater1_pron)])
+pron_pearsonr_weightedfixTA_R2 = scipy.stats.pearsonr(rater2_pron, fixTAGOP_weighted_pron[:len(rater2_pron)])
+pron_pearsonr_weightedfixTA_R3 = scipy.stats.pearsonr(rater3_pron, fixTAGOP_weighted_pron[:len(rater3_pron)])
+pron_pearsonr_weightedfixTA = (pron_pearsonr_weightedfixTA_R1[0] + pron_pearsonr_weightedfixTA_R2[0] + pron_pearsonr_weightedfixTA_R3[0]) / 3
 
 pron_pearsonr_GOP_R1 = scipy.stats.pearsonr(rater1_pron, GOP_pron[:len(rater1_pron)])
 pron_pearsonr_GOP_R2 = scipy.stats.pearsonr(rater2_pron, GOP_pron[:len(rater2_pron)])
@@ -278,12 +304,12 @@ pron_pearsonr_TAGOP_R3 = scipy.stats.pearsonr(rater3_pron, TAGOP_pron[:len(rater
 pron_pearsonr_TAGOP = (pron_pearsonr_TAGOP_R1[0] + pron_pearsonr_TAGOP_R2[0] + pron_pearsonr_TAGOP_R3[0]) / 3
 
 
-fluency_pearsonr_ent_R1 = scipy.stats.pearsonr(rater1_fluency, ent_GOP_fluency[:len(rater1_pron)])
-fluency_pearsonr_ent_R2 = scipy.stats.pearsonr(rater2_fluency, ent_GOP_fluency[:len(rater2_pron)])
+fluency_pearsonr_fixTA_R1 = scipy.stats.pearsonr(rater1_fluency, fixTAGOP_fluency[:len(rater1_pron)])
+fluency_pearsonr_fixTA_R2 = scipy.stats.pearsonr(rater2_fluency, fixTAGOP_fluency[:len(rater2_pron)])
 fluency_pearsonr_R1_R2 = scipy.stats.pearsonr(rater2_fluency, rater1_fluency[:len(rater2_pron)])
 
-integrity_pearsonr_ent_R1 = scipy.stats.pearsonr(rater1_integrity, ent_GOP_integrity[:len(rater1_pron)])
-integrity_pearsonr_ent_R2 = scipy.stats.pearsonr(rater2_integrity, ent_GOP_integrity[:len(rater2_pron)])
+integrity_pearsonr_fixTA_R1 = scipy.stats.pearsonr(rater1_integrity, fixTAGOP_integrity[:len(rater1_pron)])
+integrity_pearsonr_fixTA_R2 = scipy.stats.pearsonr(rater2_integrity, fixTAGOP_integrity[:len(rater2_pron)])
 integrity_pearsonr_R1_R2 = scipy.stats.pearsonr(rater2_integrity, rater1_integrity[:len(rater2_pron)])
 
 
@@ -313,10 +339,15 @@ pron_spearmanr_R1_R3 = scipy.stats.spearmanr(rater3_pron, rater1_pron[:len(rater
 pron_spearmanr_R2_R3 = scipy.stats.spearmanr(rater3_pron, rater2_pron[:len(rater3_pron)])
 pron_spearmanr_R = (pron_spearmanr_R1_R2[0] + pron_spearmanr_R1_R3[0] + pron_spearmanr_R2_R3[0]) / 3
 
-pron_spearmanr_ent_R1 = scipy.stats.spearmanr(rater1_pron, ent_GOP_pron[:len(rater1_pron)])
-pron_spearmanr_ent_R2 = scipy.stats.spearmanr(rater2_pron, ent_GOP_pron[:len(rater2_pron)])
-pron_spearmanr_ent_R3 = scipy.stats.spearmanr(rater3_pron, ent_GOP_pron[:len(rater3_pron)])
-pron_spearmanr_fixTA = (pron_spearmanr_ent_R1[0] + pron_spearmanr_ent_R2[0] + pron_spearmanr_ent_R3[0]) / 3
+pron_spearmanr_fixTA_R1 = scipy.stats.spearmanr(rater1_pron, fixTAGOP_pron[:len(rater1_pron)])
+pron_spearmanr_fixTA_R2 = scipy.stats.spearmanr(rater2_pron, fixTAGOP_pron[:len(rater2_pron)])
+pron_spearmanr_fixTA_R3 = scipy.stats.spearmanr(rater3_pron, fixTAGOP_pron[:len(rater3_pron)])
+pron_spearmanr_fixTA = (pron_spearmanr_fixTA_R1[0] + pron_spearmanr_fixTA_R2[0] + pron_spearmanr_fixTA_R3[0]) / 3
+
+pron_spearmanr_weightedfixTA_R1 = scipy.stats.spearmanr(rater1_pron, fixTAGOP_weighted_pron[:len(rater1_pron)])
+pron_spearmanr_weightedfixTA_R2 = scipy.stats.spearmanr(rater2_pron, fixTAGOP_weighted_pron[:len(rater2_pron)])
+pron_spearmanr_weightedfixTA_R3 = scipy.stats.spearmanr(rater3_pron, fixTAGOP_weighted_pron[:len(rater3_pron)])
+pron_spearmanr_weightedfixTA = (pron_spearmanr_weightedfixTA_R1[0] + pron_spearmanr_weightedfixTA_R2[0] + pron_spearmanr_weightedfixTA_R3[0]) / 3
 
 pron_spearmanr_GOP_R1 = scipy.stats.spearmanr(rater1_pron, GOP_pron[:len(rater1_pron)])
 pron_spearmanr_GOP_R2 = scipy.stats.spearmanr(rater2_pron, GOP_pron[:len(rater2_pron)])
@@ -338,13 +369,66 @@ pron_spearmanr_TAGOP_R2 = scipy.stats.spearmanr(rater2_pron, TAGOP_pron[:len(rat
 pron_spearmanr_TAGOP_R3 = scipy.stats.spearmanr(rater3_pron, TAGOP_pron[:len(rater3_pron)])
 pron_spearmanr_TAGOP = (pron_spearmanr_TAGOP_R1[0] + pron_spearmanr_TAGOP_R2[0] + pron_spearmanr_TAGOP_R3[0]) / 3
 
-fluency_spearmanr_ent_R1 = scipy.stats.spearmanr(rater1_fluency, ent_GOP_fluency[:len(rater1_pron)])
-fluency_spearmanr_ent_R2 = scipy.stats.spearmanr(rater2_fluency, ent_GOP_fluency[:len(rater2_pron)])
+fluency_spearmanr_fixTA_R1 = scipy.stats.spearmanr(rater1_fluency, fixTAGOP_fluency[:len(rater1_pron)])
+fluency_spearmanr_fixTA_R2 = scipy.stats.spearmanr(rater2_fluency, fixTAGOP_fluency[:len(rater2_pron)])
 fluency_spearmanr_R1_R2 = scipy.stats.spearmanr(rater2_fluency, rater1_fluency[:len(rater2_pron)])
 
-integrity_spearmanr_ent_R1 = scipy.stats.spearmanr(rater1_integrity, ent_GOP_integrity[:len(rater1_pron)])
-integrity_spearmanr_ent_R2 = scipy.stats.spearmanr(rater2_integrity, ent_GOP_integrity[:len(rater2_pron)])
+integrity_spearmanr_fixTA_R1 = scipy.stats.spearmanr(rater1_integrity, fixTAGOP_integrity[:len(rater1_pron)])
+integrity_spearmanr_fixTA_R2 = scipy.stats.spearmanr(rater2_integrity, fixTAGOP_integrity[:len(rater2_pron)])
 integrity_spearmanr_R1_R2 = scipy.stats.spearmanr(rater2_integrity, rater1_integrity[:len(rater2_pron)])
+
+
+
+
+### MIC
+def Calc_mic(x, y):
+    mine = MINE()
+    mine.compute_score(x, y)
+    return mine.mic()
+pron_MIC_R1_R2 = Calc_mic(rater2_pron, rater1_pron[:len(rater2_pron)])
+pron_MIC_R1_R3 = Calc_mic(rater3_pron, rater1_pron[:len(rater3_pron)])
+pron_MIC_R2_R3 = Calc_mic(rater3_pron, rater2_pron[:len(rater3_pron)])
+pron_MIC_R = (pron_MIC_R1_R2 + pron_MIC_R1_R3 + pron_MIC_R2_R3) / 3
+
+pron_MIC_fixTA_R1 = Calc_mic(rater1_pron, fixTAGOP_pron[:len(rater1_pron)])
+pron_MIC_fixTA_R2 = Calc_mic(rater2_pron, fixTAGOP_pron[:len(rater2_pron)])
+pron_MIC_fixTA_R3 = Calc_mic(rater3_pron, fixTAGOP_pron[:len(rater3_pron)])
+pron_MIC_fixTA = (pron_MIC_fixTA_R1 + pron_MIC_fixTA_R2 + pron_MIC_fixTA_R3) / 3
+
+pron_MIC_weightedfixTA_R1 = Calc_mic(rater1_pron, fixTAGOP_weighted_pron[:len(rater1_pron)])
+pron_MIC_weightedfixTA_R2 = Calc_mic(rater2_pron, fixTAGOP_weighted_pron[:len(rater2_pron)])
+pron_MIC_weightedfixTA_R3 = Calc_mic(rater3_pron, fixTAGOP_weighted_pron[:len(rater3_pron)])
+pron_MIC_weightedfixTA = (pron_MIC_weightedfixTA_R1 + pron_MIC_weightedfixTA_R2 + pron_MIC_weightedfixTA_R3) / 3
+
+pron_MIC_GOP_R1 = Calc_mic(rater1_pron, GOP_pron[:len(rater1_pron)])
+pron_MIC_GOP_R2 = Calc_mic(rater2_pron, GOP_pron[:len(rater2_pron)])
+pron_MIC_GOP_R3 = Calc_mic(rater3_pron, GOP_pron[:len(rater3_pron)])
+pron_MIC_GOP = (pron_MIC_GOP_R1 + pron_MIC_GOP_R2 + pron_MIC_GOP_R3) / 3
+
+pron_MIC_wGOP_R1 = Calc_mic(rater1_pron, wGOP_pron[:len(rater1_pron)])
+pron_MIC_wGOP_R2 = Calc_mic(rater2_pron, wGOP_pron[:len(rater2_pron)])
+pron_MIC_wGOP_R3 = Calc_mic(rater3_pron, wGOP_pron[:len(rater3_pron)])
+pron_MIC_wGOP = (pron_MIC_wGOP_R1 + pron_MIC_wGOP_R2 + pron_MIC_wGOP_R3) / 3
+
+pron_MIC_sGOP_R1 = Calc_mic(rater1_pron, sGOP_pron[:len(rater1_pron)])
+pron_MIC_sGOP_R2 = Calc_mic(rater2_pron, sGOP_pron[:len(rater2_pron)])
+pron_MIC_sGOP_R3 = Calc_mic(rater3_pron, sGOP_pron[:len(rater3_pron)])
+pron_MIC_sGOP = (pron_MIC_sGOP_R1 + pron_MIC_sGOP_R2 + pron_MIC_sGOP_R3) / 3
+
+pron_MIC_TAGOP_R1 = Calc_mic(rater1_pron, TAGOP_pron[:len(rater1_pron)])
+pron_MIC_TAGOP_R2 = Calc_mic(rater2_pron, TAGOP_pron[:len(rater2_pron)])
+pron_MIC_TAGOP_R3 = Calc_mic(rater3_pron, TAGOP_pron[:len(rater3_pron)])
+pron_MIC_TAGOP = (pron_MIC_TAGOP_R1 + pron_MIC_TAGOP_R2 + pron_MIC_TAGOP_R3) / 3
+
+fluency_MIC_fixTA_R1 = Calc_mic(rater1_fluency, fixTAGOP_fluency[:len(rater1_pron)])
+fluency_MIC_fixTA_R2 = Calc_mic(rater2_fluency, fixTAGOP_fluency[:len(rater2_pron)])
+fluency_MIC_R1_R2 = Calc_mic(rater2_fluency, rater1_fluency[:len(rater2_pron)])
+
+integrity_MIC_fixTA_R1 = Calc_mic(rater1_integrity, fixTAGOP_integrity[:len(rater1_pron)])
+integrity_MIC_fixTA_R2 = Calc_mic(rater2_integrity, fixTAGOP_integrity[:len(rater2_pron)])
+integrity_MIC_R1_R2 = Calc_mic(rater2_integrity, rater1_integrity[:len(rater2_pron)])
+
+
 '''
 with open(path,'a+') as f:
     csv_write = csv.writer(f)
@@ -366,18 +450,20 @@ with open(path,'a+') as f:
 
 with open(path,'a+') as f:
     csv_write = csv.writer(f)
-    data_row1 = ['GOP', str(pron_pearsonr_GOP), str(pron_spearmanr_GOP), str(None)]
-    data_row2 = ['wGOP', str(pron_pearsonr_wGOP), str(pron_spearmanr_wGOP), str(None)]
-    data_row3 = ['sGOP', str(pron_pearsonr_sGOP), str(pron_spearmanr_sGOP), str(None)]
-    data_row4 = ['FixTA_GOP', str(pron_pearsonr_fixTA), str(pron_spearmanr_fixTA), str(None)]
-    data_row5 = ['TA_GOP', str(pron_pearsonr_TAGOP), str(pron_spearmanr_TAGOP), str(None)]
-    data_row6 = ['Rater', str(pron_pearsonr_R), str(pron_spearmanr_R), str(None)]
+    data_row1 = ['GOP', str(pron_pearsonr_GOP), str(pron_spearmanr_GOP), str(pron_MIC_GOP)]
+    data_row2 = ['wGOP', str(pron_pearsonr_wGOP), str(pron_spearmanr_wGOP), str(pron_MIC_wGOP)]
+    data_row3 = ['sGOP', str(pron_pearsonr_sGOP), str(pron_spearmanr_sGOP), str(pron_MIC_sGOP)]
+    data_row4 = ['FixTA_GOP', str(pron_pearsonr_fixTA), str(pron_spearmanr_fixTA), str(pron_MIC_fixTA)]
+    data_row5 = ['weighted_FixTA_GOP', str(pron_pearsonr_weightedfixTA), str(pron_spearmanr_weightedfixTA), str(pron_MIC_weightedfixTA)]
+    data_row6 = ['TA_GOP', str(pron_pearsonr_TAGOP), str(pron_spearmanr_TAGOP), str(pron_MIC_TAGOP)]
+    data_row7 = ['Rater', str(pron_pearsonr_R), str(pron_spearmanr_R), str(pron_MIC_R)]
     csv_write.writerow(data_row1)
     csv_write.writerow(data_row2)
     csv_write.writerow(data_row3)
     csv_write.writerow(data_row4)
     csv_write.writerow(data_row5)
     csv_write.writerow(data_row6)
+    csv_write.writerow(data_row7)
 
 
 '''

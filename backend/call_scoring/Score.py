@@ -77,7 +77,7 @@ class Score():
                    continue
                if counter == 78 or counter == 79 or counter == 80:
                    continue
-               ###
+            ###
             phone_dict[line[0]] = int(id_num)
             id_num += 1
         print (phone_dict)
@@ -327,15 +327,9 @@ class Score():
         score_prob = prob_segment
         target_result = []
         for prob in score_prob:
-            if prob[phone_id - 1] > 0.5:
-                target_result.append(100)
-            else:
-                if prob[phone_id - 1] < 1e-8:
-                    target_result.append(0)
-                    continue
-                target_result.append(math.log(max(prob)) / math.log(prob[phone_id-1]) * 100)
-        target_result = sorted(target_result)
-        return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4), phone_read, entropy_list
+            target_result.append(prob[phone_id-1] * 100)
+        target_result = round(sum(target_result)/len(target_result), 4)
+        return target_result, phone_read, entropy_list
 
 
     def PScore_sGOP(self, prob_segment, phone_id):
@@ -361,11 +355,54 @@ class Score():
                     target_result.append(0)
                     continue
                 target_result.append(math.log(max(prob)) / math.log(prob[phone_id-1]) * 100)
-        target_result = sorted(target_result)
-        return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4), phone_read, entropy_list
+        target_result = round(sum(target_result)/len(target_result), 4)
+        return target_result, phone_read, entropy_list
 
 
-    def PScore_EntGOP(self, prob_segment, phone_id):
+    def PScore_FixTAGOP(self, prob_segment, phone_id):
+        ### Nan
+        prob_segment_log = np.log(np.array(prob_segment))
+        prob_segment_logSum = np.sum(prob_segment_log, axis=0)
+        phone_read = np.argmax(prob_segment_logSum) + 1
+        ###
+        if len(prob_segment) == 0:
+            return 0
+        length =len(prob_segment)
+        ### Nan: Entropy-segment
+        entropy_list = []
+        for i in range(length):
+            ent = self.calcShannonEntropy(prob_segment[i])
+            entropy_list.append(ent)
+        MinEnt_ind = entropy_list.index(min(entropy_list))
+        if (MinEnt_ind - math.ceil(length / 4)) >= 0:
+            if (MinEnt_ind + math.ceil(length / 4)) <= length:
+                score_start = MinEnt_ind - math.ceil(length / 4)
+                score_end = MinEnt_ind + math.ceil(length / 4)
+            else:
+                score_start = math.ceil(length / 2)
+                score_end = length
+        else:
+            score_start = 0
+            if (math.ceil(length / 2)) <= length:
+                score_end = math.ceil(length / 2)
+            else:
+                score_end = length
+        ####
+        score_prob = prob_segment[score_start:score_end]
+        target_result = []
+        for prob in score_prob:
+            if prob[phone_id - 1] > 0.5:
+                target_result.append(100)
+            else:
+                if prob[phone_id - 1] < 1e-8:
+                    target_result.append(0)
+                    continue
+                target_result.append(math.log(max(prob)) / math.log(prob[phone_id-1]) * 100)
+        target_result = round(sum(target_result)/len(target_result), 4)
+        return target_result, phone_read, entropy_list
+
+
+    def PScore_FixTAGOP_weighted(self, prob_segment, phone_id):
         ### Nan
         prob_segment_log = np.log(np.array(prob_segment))
         prob_segment_logSum = np.sum(prob_segment_log, axis=0)
@@ -379,11 +416,11 @@ class Score():
         for i in range(length):
             ent = self.calcShannonEntropy(prob_segment[i])
             entropy_list.append(ent)
-        MaxEnt_ind = entropy_list.index(min(entropy_list))
-        if (MaxEnt_ind - math.ceil(length / 4)) >= 0:
-            if (MaxEnt_ind + math.ceil(length / 4)) <= length:
-                score_start = MaxEnt_ind - math.ceil(length / 4)
-                score_end = MaxEnt_ind + math.ceil(length / 4)
+        MinEnt_ind = entropy_list.index(min(entropy_list))
+        if (MinEnt_ind - math.ceil(length / 4)) >= 0:
+            if (MinEnt_ind + math.ceil(length / 4)) <= length:
+                score_start = MinEnt_ind - math.ceil(length / 4)
+                score_end = MinEnt_ind + math.ceil(length / 4)
             else:
                 score_start = math.ceil(length / 2)
                 score_end = length
@@ -393,20 +430,28 @@ class Score():
                 score_end = math.ceil(length / 2)
             else:
                 score_end = length
-
-        ####
+        #### reciprocal weighted
+        entropy_list_reciprocal = list(1/entropy_list[i] for i in range(len(entropy_list)))
+        entropy_list_seg = entropy_list_reciprocal[score_start:score_end]
         score_prob = prob_segment[score_start:score_end]
+
+       # a = 0
+       # for i in range(len(score_prob)):
+       #     score_prob[i] = score_prob[i] * (entropy_list_seg[i]) / sum(entropy_list_seg)
+       #     a += (entropy_list_seg[i]) / sum(entropy_list_seg)
+       # print(a)
+
         target_result = []
-        for prob in score_prob:
+        for idx, prob in enumerate(score_prob):
             if prob[phone_id - 1] > 0.5:
-                target_result.append(100)
+                target_result.append(100 * (entropy_list_seg[idx]) / sum(entropy_list_seg))
             else:
                 if prob[phone_id - 1] < 1e-8:
                     target_result.append(0)
                     continue
-                target_result.append(math.log(max(prob)) / math.log(prob[phone_id-1]) * 100)
-        target_result = sorted(target_result)
-        return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4), phone_read, entropy_list
+                target_result.append(math.log(max(prob)) / math.log(prob[phone_id-1]) * 100 * (entropy_list_seg[idx]) / sum(entropy_list_seg))
+        target_result = round(sum(target_result), 4)
+        return target_result, phone_read, entropy_list
 
 
     def PScore_wGOP_linear(self, prob_segment, phone_id):
@@ -421,28 +466,18 @@ class Score():
         ### linear
         score_prob = prob_segment
         phones_prob = np.sum(prob_segment, axis=0) / length
-        for phone in range(len(phones_prob)):
-            weight_phone = 0
-            for i in (list(range(phone)) + list(range(phone+1, len(phones_prob)))):
-                weight_phone += phones_prob[phone] / (phones_prob[phone] + phones_prob[i])
-            weight_phone = weight_phone / (len(phones_prob)-1)
-            score_prob[:, phone] = weight_phone * score_prob[:, phone]
+       # print(phones_prob)
+        new_prob = 0
+        for i in (list(range(phone_id-1)) + list(range(phone_id, len(phones_prob)))):
+            new_prob += phones_prob[phone_id-1] / (phones_prob[phone_id-1] + phones_prob[i])
+        new_prob = round(new_prob / (len(phones_prob)-1), 4)
+       # print (new_prob)
         ###
-        target_result = []
-        for prob in score_prob:
-            if prob[phone_id - 1] > 0.5:
-                target_result.append(100)
-            else:
-                if prob[phone_id - 1] < 1e-8:
-                    target_result.append(0)
-                    continue
-                target_result.append(math.log(max(prob)) / math.log(prob[phone_id-1]) * 100)
-        target_result = sorted(target_result)
+        target_result = new_prob * 100
         entropy_list = None
-        return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4), phone_read, entropy_list
+        return target_result, phone_read, entropy_list
 
-
-    def PScore_wGOP_softmax(self, prob_segment, phone_id):
+    def PScore_TAGOP(self, prob_segment, phone_id):
         ### Nan
         prob_segment_log = np.log(np.array(prob_segment))
         prob_segment_logSum = np.sum(prob_segment_log, axis=0)
@@ -456,55 +491,21 @@ class Score():
         for i in range(length):
             ent = self.calcShannonEntropy(prob_segment[i])
             entropy_list.append(ent)
-        ### SoftMax
-        SoftMax_list = self.softmax(entropy_list)
+        ### reciprocal weighted
         score_prob = prob_segment
-        for i in range(length):
-            score_prob[i] = score_prob[i] / SoftMax_list[i]
+        entropy_list_reciprocal = list(1/entropy_list[i] for i in range(len(entropy_list)))
         ###
         target_result = []
-        for prob in score_prob:
+        for idx, prob in enumerate(score_prob):
             if prob[phone_id - 1] > 0.5:
-                target_result.append(100)
+                target_result.append(100 * (entropy_list_reciprocal[idx]) / sum(entropy_list_reciprocal))
             else:
                 if prob[phone_id - 1] < 1e-8:
                     target_result.append(0)
                     continue
-                target_result.append(math.log(max(prob)) / math.log(prob[phone_id-1]) * 100)
-        target_result = sorted(target_result)
-        return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4), phone_read, entropy_list
-
-
-    def PScore_wGOP_reciprocal(self, prob_segment, phone_id):
-        ### Nan
-        prob_segment_log = np.log(np.array(prob_segment))
-        prob_segment_logSum = np.sum(prob_segment_log, axis=0)
-        phone_read = np.argmax(prob_segment_logSum) + 1
-        ###
-        if len(prob_segment) == 0:
-            return 0
-        length =len(prob_segment)
-        ### Nan: Entropy part
-        entropy_list = []
-        for i in range(length):
-            ent = self.calcShannonEntropy(prob_segment[i])
-            entropy_list.append(ent)
-        ### reciprocal
-        score_prob = prob_segment
-        for i in range(length):
-            score_prob[i] = score_prob[i] / entropy_list[i]
-        ###
-        target_result = []
-        for prob in score_prob:
-            if prob[phone_id - 1] > 0.5:
-                target_result.append(100)
-            else:
-                if prob[phone_id - 1] < 1e-8:
-                    target_result.append(0)
-                    continue
-                target_result.append(math.log(max(prob)) / math.log(prob[phone_id-1]) * 100)
-        target_result = sorted(target_result)
-        return round(sum(target_result[:min(1, len(target_result))]) / min(len(target_result), 1), 4), phone_read, entropy_list
+                target_result.append(math.log(max(prob)) / math.log(prob[phone_id-1]) * 100 * (entropy_list_reciprocal[idx]) / sum(entropy_list_reciprocal))
+        target_result = round(sum(target_result), 4)
+        return target_result, phone_read, entropy_list
 
 
     def CalcFluency(self, result_dict, ar):
@@ -578,7 +579,7 @@ class Score():
                 while align_position < len(ar) and ar[align_position] == template[template_position]:
                     align_position += 1
                 phone_dict["end"] = align_position
-                phone_dict["score"], phone_read, entropy_list = self.PScore_wGOP_linear(prob[phone_dict["start"]:phone_dict["end"]], template[template_position])
+                phone_dict["score"], phone_read, entropy_list = self.PScore_FixTAGOP_weighted(prob[phone_dict["start"]:phone_dict["end"]], template[template_position])
                 if entropy_list == None:
                     Ent_list_all = None
                 else:
@@ -654,13 +655,13 @@ if __name__ == "__main__":  ### Need to change Entropy saving path above
     parser.add_argument('--version', type=bool, default = False, help='Version 1 or 2')
     args = parser.parse_args()
 
-    text = 'Did you hear that Daniel made the cut to Varsity Track and Field?'
+   # text = 'Did you hear that Daniel made the cut to Varsity Track and Field?'
    # text = "I have to study for my AP Calculus test."
    # text = "He scored three amazing goals in yesterday's game."
    # text =  "Do you know where the Emergency Room is located?"
-   # text = "hello, how are you doing?"
+    text = "hello, how are you doing?"
 
-    audio = '/home/nan/CALL-proto/Fun-emes/django_project/microphone-results_1.wav'
+    audio = '/home/nan/CALL-proto/Fun-emes/django_project/microphone-results_5.wav'
     Score_test = Score(args.lexiconaddr, args.phonesaddr, args.sr, args.kaldi_workspace, args.utt_id, args.version)
    # score_output, utt_id = Score_test.CalcScores(audio, text)
     score_output = Score_test.CalcScores(audio, text)
