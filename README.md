@@ -3,36 +3,23 @@ A prototype works on computer assisted language learning (CALL)
 
 ## Document
 doc/UI flow.pptx \
-doc/Backend-Design-0309-2020.pdf \
-doc/Backend-Design-Assignment4.pdf \
-doc/Frontend-Design-Assignment4.pdf \
-doc/Frontend-Design-Assignment5.pdf \
-doc/HW5\_backend.pdf
+doc/Backend-Design-0309-2020.pdf
 
 ## Environment Install
-
-prelimilinary requirements: install portaudio
-Necessary packages and libraries to install before running server for the first time if you do not already have them: \
-`brew install portaudio`
 
 `cd tools` \
 `make KALDI=your_kaldi_dir`
 and then install torch by conda
 
 For usage: \
-`source tools/env.sh`
+`. tools/env.sh`
 
 Followings are my sample environment:
 python version: 3.7.6 (default, Jan  8 2020, 19:59:22)  [GCC 7.3.0] \
 pytorch version: 1.1.0 \
 cupy version: 6.2.0 \
 cuda version: 9010 \
-cudnn version: 7501 \
-django version: 3.0.4 \
-speechrecognition version: 2.1.3 \
-portaudio version: V19.6.0 \
-pyaudio version: 0.2.11 \
-gTTS version: 2.1.1
+cudnn version: 7501
 
 
 # Django Application
@@ -48,7 +35,24 @@ The project is made from tutorial so the frontend functionalities do not exactly
 Runs on latest version of python (python3) and need pip to install needed packages so make sure that you have them on your machine
 
 `cd Django/django_project` \
+ Install python3 virtual environment package first if you dont already have it, and then use command `python3 -m venv env` \
+`source env/bin/activate` to start the virtual environment, make sure to do this before running the server \
 
+Necessary packages and libraries to install before running server for the first time if you do not already have them:
+`pip install django`\
+`pip install django-crispy-forms`\
+`pip install scipy`\
+`pip install SpeechRecognition`\
+`brew install portaudio`\
+`pip install pyaudio`\
+`brew install ffmpeg`
+
+Followings are my sample environment (as of Mar 2020) :
+python version: 3.7.6 (default, Mar 2020)  [GCC 7.3.0] \
+django version: 3.0.4 \
+speechrecognition version: 2.1.3 \
+portaudio version: V19.6.0 \
+pyaudio version: 0.2.11
 
 ## Runnning the Development Server
 

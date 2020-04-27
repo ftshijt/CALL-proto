@@ -17,5 +17,6 @@ dependencies:
     - yamlargparse
     - SpeechRecognition
     - pyaudio
-    - django
-    - gTTS
+    - pydub
+    - django-enum-choices
+    

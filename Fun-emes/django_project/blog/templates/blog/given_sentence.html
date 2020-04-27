@@ -233,10 +233,34 @@ button:hover {
    position: absolute;
 }
 
+audio:hover, audio:focus, audio:active
+{
+-webkit-box-shadow: 15px 15px 20px rgba(0,0, 0, 0.4);
+-moz-box-shadow: 15px 15px 20px rgba(0,0, 0, 0.4);
+box-shadow: 15px 15px 20px rgba(0,0, 0, 0.4);
+-webkit-transform: scale(1.05);
+-moz-transform: scale(1.05);
+transform: scale(1.05);
+}
+
+audio
+{
+-webkit-transition:all 0.5s linear;
+-moz-transition:all 0.5s linear;
+-o-transition:all 0.5s linear;
+transition:all 0.5s linear;
+-moz-box-shadow: 2px 2px 4px 0px #006773;
+-webkit-box-shadow:  2px 2px 4px 0px #006773;
+box-shadow: 2px 2px 4px 0px #006773;
+-moz-border-radius:7px 7px 7px 7px ;
+-webkit-border-radius:7px 7px 7px 7px ;
+border-radius:7px 7px 7px 7px ;
+
+}
+
 </style>
 
 <script type = "text/JavaScript">
-	var clicked = 1;
 	// Get ID of occupation
 	// returns string of ID
 	function GetOccupation(){
@@ -255,7 +279,10 @@ button:hover {
 
 	// Generate Sentence Button
 	function GenerateSentence() {
-		console.log(clicked)
+		clicks = JSON.parse("{{ clicks | escapejs }}");
+		clicks = parseInt(clicks);
+		console.log(clicks);
+
 		var occupationID = GetOccupation();
 		var scenarioID = GetScenario();
 
@@ -270,16 +297,16 @@ button:hover {
 		}
 		else if (occupationID === "ID003" && scenarioID === "ID008") {
 			// High School Student
-			if (clicked == 1) {
+			if (clicks == 1) {
 				sentence = "Did you hear that Daniel made the cut to Varsity Track and Field?"
 			}
-			else if (clicked == 2) {
+			else if (clicks == 0) {
 				sentence = "I have to study for my AP Calculus test."
 			}
-			else {
+			else if (clicks == 2) {
 				sentence = "He scored three amazing goals in yesterday's game."
 			}
-			clicked += 1;
+			clicks += 1;
 		}
 		else if (occupationID === "ID005" && scenarioID === "ID010") {
 			// Working employee
@@ -293,7 +320,11 @@ button:hover {
 			sentence = "Sentence to be determined"
 		}
 
+		var IDs = { ID1: occupationID, ID2: scenarioID }; 
+
 		// update the input in the form so that it can be passed to python
+		document.getElementById("IDs").value = JSON.stringify(IDs);
+		document.getElementById("clicks").value = clicks;
 		document.getElementById("sentence").value = sentence;
 		sentence = sentence.split(" ");
 		// clears spans elements if there are any 
@@ -314,14 +345,32 @@ button:hover {
 
 		document.getElementById("repeat").style.display = "block";
 		document.getElementById("record_button").style.display = "block";
+		document.getElementById("audio_prompt1").style.display = "block";
+		document.getElementById("sentence_audio").style.display = "block";
+		document.getElementById("audio_prompt2").style.display = "block";
+		document.getElementById("user_audio").style.display = "block";
+		document.getElementById("average").style.display = "none";
+		document.getElementById("resultPopUp").style.display = "none";
+		document.getElementById("evaluate_button").style.display = "none";;
+		document.getElementById("history_button").style.display = "none";
+
 	}
 
 	// Evaluate Button
 	function ScoreSentence() {
 		var score;
-		var occupationID = GetOccupation();
-		var scenarioID = GetScenario();
-		console.log(clicked);
+		var ids = JSON.parse("{{ IDs | escapejs }}");
+		console.log(ids);
+
+		var occupationID = ids.ID1;
+		var scenarioID = ids.ID2;
+
+		clicks = JSON.parse("{{ clicks | escapejs }}");
+		console.log(clicks);
+
+		scores = JSON.parse("{{ scores | escapejs }}");
+		console.log(scores);
+
 
 		if (occupationID === "ID002" && scenarioID === "ID008") { 
 			// Middle School Student
@@ -329,18 +378,18 @@ button:hover {
 		}
 		else if (occupationID === "ID001" && scenarioID === "ID008") {
 			// Elementary student
-			score = JSON.parse("{{ elementary | escapejs }}");
+			score = scores[4];
 		}
 		else if (occupationID === "ID003" && scenarioID === "ID008") {
 			// High School Student
-			if (clicked == 1) {
-				score = JSON.parse("{{ highschool1 | escapejs }}");
+			if (clicks == 1) {
+				score = scores[1];
 			}
-			else if (clicked == 2) {
-				score = JSON.parse("{{ highschool2 | escapejs }}");
+			else if (clicks == 2) {
+				score = scores[0];
 			}
-			else {
-				score = JSON.parse("{{ highschool3 | escapejs }}");
+			else if (clicks == 3){
+				score = scores[2];
 			}
 		}
 		else if (occupationID === "ID005" && scenarioID === "ID010") {
@@ -349,7 +398,7 @@ button:hover {
 		}
 		else if (occupationID === "ID005" && scenarioID === "ID013") {
 			// Middle-aged person needing medical assistance
-			score = JSON.parse("{{ hospital | escapejs }}");
+			score = scores[3];
 		}
 		else {
 			
@@ -456,24 +505,34 @@ button:hover {
 		<p id='display' style="font-size: 26px;"></p>
 	</div>
 </div>
-
-<!-- <br/>
+<!-- 
+<br/>
 <br/>
 <button class="listen_btn" style="width:170px;height:30px;">Listen To Sentence</button> -->
 
 <br/>
 <br/>
-
+{% load static %}
 <div class="row">
-	<div class="column" style="width:33.33%;">
-		<div style="display:block;margin:auto;width:80px;height:30px;">
+	<div class="column" id="recordAndListen" style="width:33.33%;">
 			<form method="post">
 				{% csrf_token %}
+				<input type="hidden" id="clicks" name="clicks">
 				<input type="hidden" id="sentence" name="text">
+				<input type="hidden" id="IDs" name="IDs">
 				<input type="hidden" name="record" >
-				<button id="record_button" style="width:80px;height:30px;display:none;">Record</button>
+				<p id="audio_prompt1" style="display: none;">Listen to the sentence:</p>
+				<audio controls id="sentence_audio" src="{% static 'audio/sentence.mp3' %}" style="display:none;">
+				</audio>
+				<br/>
+				<button id="record_button" onclick="onRecord()" style="width:80px;height:30px;display:none;">Record</button>
+				<br/>
+				<p id="audio_prompt2" style="display: none;">Listen to Yourself:</p>
+				<audio controls id="user_audio" src="{% static 'audio/user.mp3' %}" style="display:none;">
+				</audio>
+				<br/>
+				<p>{{data}}</p>
 			</form>	
-		</div>
 	</div>
 <!-- 		<br/>
 		<br/>		
@@ -609,9 +668,14 @@ function getStars(id) {
 	console.log(id.substring(4));
 }
 
+function onRecord() {
+	var button = document.getElementById("record_button");
+	button.style.backgroundColor = "lime";
+}
+
 </script>
 <script>
-	var score = JSON.parse("{{ highschool1 | escapejs }}");
+	var scores = JSON.parse("{{ scores | escapejs }}");
 	var sentence = JSON.parse("{{ sentence | escapejs }}");
 	if (sentence !== null) {
 			sentence = sentence.split(" ");
@@ -629,7 +693,11 @@ function getStars(id) {
 				list.appendChild(newSpan);
 			}
 			document.getElementById("record_button").style.display = "block";
-			if (score !== null) {
+			document.getElementById("audio_prompt1").style.display = "block";
+			document.getElementById("sentence_audio").style.display = "block";
+			document.getElementById("audio_prompt2").style.display = "block";
+			document.getElementById("user_audio").style.display = "block";
+			if (scores !== null) {
 				document.getElementById("evaluate_button").style.display = "block";
 				document.getElementById("history_button").style.display = "block";
 			}
