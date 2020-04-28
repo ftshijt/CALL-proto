@@ -3,7 +3,8 @@ A prototype works on computer assisted language learning (CALL)
 
 ## Document
 doc/task0-assignment6.pdf \
-doc/Frontend-Design-Assignment6.pdf
+doc/Frontend-Design-Assignment6.pdf \
+doc/Assignment3-Task2.pdf
 
 ## Environment Install
 
