@@ -1,0 +1,45 @@
+{% load static %}
+<script src="{% static 'js/jquery-2.2.4.min.js' %}"></script>
+<script type="text/javascript">
+	$(document).on('submit', '#post-form',function(e){
+    $.ajax({
+        type:'POST',
+        url:'{% url "create" %}',
+        data:{
+            title:$('#title').val(),
+            description:$('#description').val(),
+            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+            action: 'post'
+        },
+        success:function(json){
+            document.getElementById("post-form").reset();
+            $(".posts").prepend('<div class="col-md-6">'+
+                '<div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">' +
+                    '<div class="col p-4 d-flex flex-column position-static">' +
+                        '<h3 class="mb-0">' + json.title + '</h3>' +
+                        '<p class="mb-auto">' + json.description + '</p>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' 
+            )
+        },
+        error : function(xhr,errmsg,err) {
+        console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+    }
+    });
+});
+
+</script>
+
+<form method="POST" id="post-form">
+  {% csrf_token %}
+  <div class="form-group">
+    <label>Title</label>
+    <input type="text" class="form-control" id="title" placeholder="Title">
+  </div>
+   <div class="form-group">
+     <label>Description</label>
+     <textarea class="form-control" id="description" placeholder="Description"></textarea>
+   </div>
+   <button type="submit" class="btn btn-primary">Submit</button>
+</form>
