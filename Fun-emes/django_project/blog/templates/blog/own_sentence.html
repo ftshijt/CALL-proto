@@ -2,56 +2,63 @@
 {% extends "blog/base.html" %}
 {% block content%}
 <style>
-.dropbtn {
-  background-color: #3498DB;
-  color: white;
-  width: 250px;
-  height: 40px;
-  padding: 16px;
-  font-size: 16px;
-  border: none;
-  cursor: pointer;
+/* Class-based styling */
+.checked {
+  color: orange;
 }
 
-.sentence-btn {
-  background-color: #3498DB;
-  color: white;
-  width: 250px;
-  height: 40px;
-  padding: 16px;
-  font-size: 16px;
-  border: none;
-  cursor: pointer;
+hr { 
+	display: block;
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+	margin-left: auto;
+	margin-right: auto;
+	border-style: inset;
+	border-width: 1px;
+} 
+
+input[type=text]{
+	width: 20%;
+	padding: 6px 20px;
+	margin: 8px 0;
+	display: inline-block;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
 }
 
-.loader {
-  border: 16px solid #f3f3f3;
-  border-radius: 50%;
-  border-top: 16px solid #3498db;
-  width: 120px;
-  height: 120px;
-  -webkit-animation: spin 2s linear infinite; /* Safari */
-  animation: spin 2s linear infinite;
+input[type=submit] {
+	width: 10%;
+	background-color: #D3D3D3;
+	color: black;
+	padding: 6px 20px;
+	margin-left: 30px;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
 }
 
-/* Safari */
-@-webkit-keyframes spin {
-  0% { -webkit-transform: rotate(0deg); }
-  100% { -webkit-transform: rotate(360deg); }
+input[type=submit]:hover {
+	background-color: #A9A9A9;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+button {
+	margin: auto;
+	background-color: #D3D3D3;
+	color: black;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
 }
 
-select {
-	width: 200px;
+button:hover {
+	background-color: #A9A9A9;
 }
 
+/* ID-based styling */
 #col1 {
 	float: left;
-  	width: 20.00%;
+	width: 20.00%;
 }
 
 #col2 {
@@ -59,273 +66,393 @@ select {
 	width: 80.00%;
 }
 
+/* classname-based styling */
+.lower_button {
+	display: none;
+	margin: auto;
+}
+
+.select-css {
+	display: block;
+	font-size: 16px;
+	font-family: sans-serif;
+	font-weight: 700;
+	color: #444;
+	line-height: 1.3;
+	padding: .6em 1.4em .5em .8em;
+	width: 50%;
+	max-width: 50%;
+	box-sizing: border-box;
+	margin: 0;
+	border: 1px solid #aaa;
+	box-shadow: 0 1px 0 1px rgba(0,0,0,.04);
+	border-radius: .5em;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	appearance: none;
+	background-color: #fff;
+	background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'),
+	  linear-gradient(to bottom, #ffffff 0%,#e5e5e5 100%);
+	background-repeat: no-repeat, repeat;
+	background-position: right .7em top 50%, 0 0;
+	background-size: .65em auto, 100%;
+}
+
+.select-css::-ms-expand {
+	display: none;
+}
+.select-css:hover {
+	border-color: #888;
+}
+.select-css:focus {
+	border-color: #aaa;
+	box-shadow: 0 0 1px 3px rgba(59, 153, 252, .7);
+	box-shadow: 0 0 0 3px -moz-mac-focusring;
+	color: #222;
+	outline: none;
+}
+.select-css option {
+	font-weight:normal;
+}
+
+/* Popup container - can be anything you want */
+.popup {
+  position: relative;
+/*  display: inline-block;*/
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+/*  margin-left: auto;
+  margin-right: auto;*/
+}
+
+/* The actual popup */
+.popup .popuptext {
+  visibility: hidden;
+  width: 160px;
+  height: 80px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 8px 0;
+  position: absolute;
+  z-index: 1;
+  bottom: 175%;
+  left: 50%;
+  margin-left: -80px;
+}
+
+/* Popup arrow */
+.popup .popuptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+/* Toggle this class - hide and show the popup */
+.popup .show {
+  visibility: visible;
+  -webkit-animation: fadeIn 1s;
+  animation: fadeIn 1s;
+}
+
+/* Add animation (fade in the popup) */
+@-webkit-keyframes fadeIn {
+  from {opacity: 0;} 
+  to {opacity: 1;}
+}
+
+@keyframes fadeIn {
+  from {opacity: 0;}
+  to {opacity:1 ;}
+}
+
+.rating {
+  unicode-bidi: bidi-override;
+  direction: rtl;
+}
+
+.rating > p {
+	display: inline-block;
+	font-size :14px;
+	width: 80px;
+}
+
+.rating > span {
+  display: inline-block;
+  position: relative;
+  font-size: 18px;
+  width: 1.1em;
+}
+
+.rating > span:hover:before,
+.rating > span:hover ~ span:before {
+   content: "\2605";
+   position: absolute;
+}
+
+.audio_button {
+	background-color: #fafafa;
+	color: "blue";
+	cursor: pointer;
+	font-size: 12px;
+}
+
+.blinking_button {
+	animation-name: blinker;
+	animation-duration: 1s;
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+}
+
+@keyframes blinker {
+	0%{opacity: 1.0}
+	50%{opacity: 0.0}
+	100%{opacity: 1.0}
+}
 </style>
-<p>If you would like to learn from your own sentences, please write them below.</p>
 
 <script type = "text/JavaScript">
 
-	var sentence = JSON.parse("{{ sentence | escapejs }}");
-	var score = JSON.parse("{{ score | escapejs }}");
-	console.log(sentence);
-	console.log(score);
-
-	function GetOccupation(){
-		var e = document.getElementById("environment");
-		var result = e.options[e.selectedIndex].value;
-		return result;
-	}
-
-	function GetScenario(){
-		var e = document.getElementById("scenario");
-		var result = e.options[e.selectedIndex].value;
-		return result;
-	}
-
-	function GenerateSentence() {
-
-		var occupationID = GetOccupation();
-		var scenarioID = GetScenario();
-
-		var sentence;
-		if (occupationID === "ID002" && scenarioID === "ID008") {
-			// Middle School Student
-			sentence = "Do you want to go play basketball or soccer together?"
-		}
-		else if (occupationID === "ID003" && scenarioID === "ID008") {
-			// High School Student
-			sentence = "Did you hear that Daniel made the cut to Varsity Track and Field?"
-		}
-		else if (occupationID === "ID005" && scenarioID === "ID010") {
-			// Working employee
-			sentence = "This is a presentation to inform about how our project is applicable for certain aspects of company growth."
-		}
-		else if (occupationID === "ID013" && scenarioID === "ID014") {
-			// Middle-aged person needing medical assistance
-			sentence = "Do you know where the Emergency Room is located?"
-		}
-		else {
-			sentence = "Sentence to be determined"
-		}
-
-		sentence = sentence.split(" ");
-
-		var spans = document.getElementById('display').childNodes;
-
-		console.log(spans.length);
-		if (spans.length > 3) {
-			for (i=1; i<spans.length;i++) {
-				spans[i].remove()
-			}
-		}
-
-		for(var i = 0; i < sentence.length;i++) {
-			if (i != sentence.length-1) {
-				sentence[i] += " ";
-			}
-			var newSpan = document.createElement('span');
-			newSpan.textContent = sentence[i];
-			document.getElementById('display').appendChild(newSpan);
-		}
-
-	}
-
-	// function ShowSentence() {
-	// 	var sentence = JSON.parse("{{ sentence | escapejs }}");
-
-	// 	for(var i = 0; i < sentence.length;i++) {
-	// 		if (i != sentence.length-1) {
-	// 			sentence[i] += " ";
-	// 		}
-	// 		console.log(sentence[i]);
-	// 		var newSpan = document.createElement('span');
-	// 		newSpan.textContent = sentence[i];
-	// 		document.getElementById('display').appendChild(newSpan);
-	// 	}
-	// }
-
+	// Evaluate Button
 	function ScoreSentence() {
-		var score = JSON.parse("{{ score | escapejs }}");
-		var score_list = [];
-    console.log(score);
-		for(i=0; i<score.words.length;i++) {
-			score_list.push(score.words[i].score);
-		}
-
+		const score = JSON.parse("{{ score | escapejs }}");
+		// process scored data passed from python
 		var spans = document.getElementById('display').childNodes;
-
-		for (i=1; i<spans.length;i++) {
-			spans[i].style.color = ChangeColor(score_list[i-1]);
+		// loop through the JSON words, color each word in the sentence by score
+		var total_score = 0;
+		for (i=0; i<spans.length;i++) {
+			var childSpan = document.createElement('spans');
+			childSpan.setAttribute('class', "popuptext");
+			childSpan.setAttribute('id', String(i));
+			var all_phones = [];
+			var phones = score.words[i].phones;
+			for (var j=0; j < phones.length; j++) {
+				all_phones.push(phones[j].phone);
+			}
+			childSpan.textContent = all_phones.join('-');
+			spans[i].appendChild(childSpan);
+			spans[i].setAttribute('id', "p" + String(i));
+			spans[i].setAttribute('class', "popup");
+			spans[i].setAttribute('onclick', "getPhonemes(this.id)");
+			spans[i].style.color = ChangeColor(score.words[i].score);
+			total_score += score.words[i].score;
 		}
+
+		// var avg_score = total_score / score.words.length;
+		average.innerText = Math.round(score.pronunciation);
+		average.style.color = ChangeColor(score.pronunciation);
+
+		// show toggle for extra information
+		document.getElementById("resultPopUp").style.display = "block";
+		var otherInfo = 'pronunciation: ';
+		var otherInfo = otherInfo.concat(Math.round(score.pronunciation), '\n', 'fluency: ', Math.round(score.fluency), '\t\n', 'integrity: ', Math.round(score.integrity));
+		document.getElementById("otherInfo").textContent = otherInfo;
+
+		document.getElementById("evaluate_button").style.backgroundColor = "#D3D3D3";
 	}
 
 	function ChangeColor(score) {
 		if (score <= 50) {
-			return "red";
+			return "crimson";
 		}
 		else if (score <= 75) {
-			return "yellow";
+			return "orange";
 		}
 		else {
 			return "green";
 		}
 	}
-
-  function getSentence(){
-
-    var sentence = document.getElementById("user_input").value;
-    // console.log(sentence);
-    sentence = sentence.split(" ");
-
-    var spans = document.getElementById('display');
-    while (spans.hasChildNodes()){
-      spans.removeChild(spans.firstChild);
-    }
-
-		for(var i = 0; i < sentence.length;i++) {
-			if (i != sentence.length-1) {
-				sentence[i] += " ";
-			}
-			var newSpan = document.createElement('span');
-			newSpan.textContent = sentence[i];
-			document.getElementById('display').appendChild(newSpan);
-		}
-    // spans.value = sentence;>
-  }
 </script>
 
-<p>Repeat After Me...</p>
-<!-- <textarea type="text" id="generated" name="generated" style="width:1000px;height:180px;" readonly contenteditable="true">This is a sample sentence</textarea> -->
-<div class="user_input">
-  <input type="text" id="user_input" name="test" size="70" maxlength="70" placeholder="This is a sample sentence"/>
-  <br/>
-  <br/>
-      <button class="score_btn" onclick="getSentence()" style="width:170px;height:30px;">Submit</button>
-</div>
+<h1>Welcome to Self Practice</h1>
 <br/>
 <br/>
+<form method="post">
+	{% csrf_token %}
+	<input type="hidden" name="recording" value="false">
+	<input class="textbox" placeholder="Type your sentence or words here:" style="width:600px;height:50px;margin-left:100px;display:block;" type="text" id="sentence" name="text" required>
+	<br/>
+	<button id="audio_button" style="width:120px;height:30px;">Get Audio</button>
+</form>
 <br/>
 <br/>
+
+<h3 id="repeat" style="display: none;">Repeat After Me...</h3>
 <div class="row">
 	<div class="column" id="col1">
 
 	</div>
 	<div class="column" id="col2">
-		<h3 id='display'></h3>
+		<p id='display' style="font-size: 26px;"></p>
 	</div>
 </div>
 
 <br/>
 <br/>
-<!-- <button class="listen_btn" style="width:170px;height:30px;">Listen To Sentence</button> -->
+{% load static %}
+<div class="row">
+	<div class="column" id="recordAndListen" style="width:33.33%;">
+			<form method="post">
+				<input type="hidden" id="start" name="start">
+				<input type="hidden" name="recording" value="true">
+				<input type="hidden" id="send_sentence" name="text">
+				{% csrf_token %}
+				<a href="{% static 'audio/sentence.mp3' %}" id="audio_prompt1" style="display:none;">Not sure how to say it?</a>
+				<br/>
+				<button id="record_button" onclick="onRecord()" style="width:80px;height:30px;display:none;">Record</button>
+				<br/>
+				<a href="{% static 'audio/user.mp3' %}" id="audio_prompt2" style="display:none;">Want to hear your audio?</a>
+				<br/>
+				<br/>
+			</form>	
+	</div>
+	<div class="column" style="width:33.33%;">
+		<div class="lower_button" style="width:60px;height: 60px;display:block;">
+			<h2 id="average"></h2>
+		</div>
+		<br/>
+		<div class="lower_button" style="width:180px;height:30px;display:block;">
+			<div class="popup" onclick="getOtherInfo()" id="resultPopUp" style="text-decoration: underline; font-size: 16px; font-weight: bold; color: #2E8B57; display: none;">Click to View Details
+				<span class="popuptext" id="otherInfo"></span>
+			</div>
+		</div>
+	</div>
+	<div class="column" style="width:33.33%;">
+		<button class="lower_button" id="evaluate_button" onclick="ScoreSentence()" style="width:240px;height:30px; background-color: #3CB371;">Click For Your Score!</button>
+		<br/>
+		<br/>
+		<button class="lower_button" id="history_button" onclick="window.location.href = 'http://localhost:8000/fun-emes/profile/';" style="width:240px;height:30px;">Check Out Your History</button>
+		<br/>
+	</div>
+</div>
 
 <br/>
+<hr>
 <br/>
 
 <div class="row">
-  <div class="column" style="width:33.33%;">
-    <form method="post">
-    		{% csrf_token %}
-		<input type="hidden" name="record">
-		<button class="button button5" style="width:80px;height:30px">Record</button>
-		</form>
-		<h> {{data}}</h1>
-		<br/>
-		<br/>
-		<button class="play_btn" style="width:170px;height:30px;">Play Your Audio</button>
-		<br/>
-		<br/>
-		<button class="record_btn" style="width:170px;height:30px;">Record Again</button>
-		<br/>
-		<br/>
-  </div>
-  <div class="column" style="width:33.33%;">
-  </div>
-  <div class="column" style="width:33.33%;">
-    <button class="score_btn" onclick="ScoreSentence()" style="width:170px;height:30px;">Evaluate</button>
-	<br/>
-	<br/>
-  </div>
+	<div class="column" style="display: block;margin: auto; text-align: center;">
+		<h3>Was this Feature Helpful?</h3>
+		<div class="rating" id="stars">
+			<p>Very helpful</p>
+			<span id='star5' onclick="getStars(this.id)">☆</span>
+			<span id='star4' onclick="getStars(this.id)">☆</span>
+			<span id='star3' onclick="getStars(this.id)">☆</span>
+			<span id='star2' onclick="getStars(this.id)">☆</span>
+			<span id='star1' onclick="getStars(this.id)">☆</span>
+			<p>Not helpful</p>
+		</div>
+		<div class="lower_button" style="width:180px;height:30px;display:block;">
+			<div class="popup" onclick="getSubmitConfirm()" id="submit" style="font-size: 16px;">Submit
+				<span class="popuptext" id="submitConfirm">Thank you for your feedback!</span>
+			</div>
+		</div>
+	</div>
+	<a href="{% url 'feedback' %}" style="">Write To Us</a>
 </div>
+<script>
+
+function getOtherInfo() {
+  var popup = document.getElementById("otherInfo");
+  popup.classList.toggle("show");
+}
+
+function getSubmitConfirm() {
+  var popup = document.getElementById("submitConfirm");
+  popup.classList.toggle("show");
+}
+
+function getPhonemes(parent_id) {
+	var child_id = parent_id.substring(1);
+	var popup = document.getElementById(child_id);
+	popup.classList.toggle("show");
+}
+
+function getStars(id) {
+	const numStars = id.substring(4);
+	console.log(id.substring(4));
+	fillStars(numStars);
+}
+
+function onRecord() {
+	var button = document.getElementById("record_button");
+	button.style.backgroundColor = "#3CB371";
+	button.className = "blinking_button";
+}
+
+function fillStars(numStars) {
+	var stars = document.getElementById("stars").childNodes;
+	var spans = [];
+	for (var i=0; i < stars.length; i++) {
+		if (stars[i].tagName === "SPAN") {
+			spans.push(stars[i]);
+		}
+	}
+
+	for (var i=spans.length-1; i > spans.length-numStars-1;i--) {
+		spans[i].textContent = "★";
+	}
+}
+
+// function handleAudio1() {
+// 	document.getElementById("sentence_audio").style.display = "block";
+// }
+
+// function handleAudio2() {
+// 	document.getElementById("user_audio").style.display = "block";
+// }
+
+
+</script>
+<script>
+	const score = JSON.parse("{{ score | escapejs }}");
+	if (score !== null) {
+		console.log(score);
+		showSentence(score.text);
+		document.getElementById("audio_prompt2").style.display = "block";
+		document.getElementById("evaluate_button").style.display = "block";
+		document.getElementById("history_button").style.display = "block";
+	}
+	var sentence = JSON.parse("{{ sentence | escapejs }}");
+	console.log(sentence);
+	if (sentence !== null) {
+			showSentence(sentence);
+			document.getElementById("send_sentence").value = sentence;
+		}
+		else {
+			console.log("no sentence");
+		}
+
+	function showSentence(sentence) {
+		sentence = sentence.split(" ");
+		var list = document.getElementById('display');
+		while (list.hasChildNodes()) {  
+			list.removeChild(list.firstChild);
+		}
+
+		for(var i=0; i<sentence.length;i++) {
+			if (i != sentence.length-1) {
+				sentence[i] += " ";
+			}
+			var newSpan = document.createElement('span');
+			newSpan.textContent = sentence[i];
+			list.appendChild(newSpan);
+		}
+		document.getElementById("record_button").style.display = "block";
+		document.getElementById("audio_prompt1").style.display = "block";
+	}
+
+</script>
 
 
 
 {% endblock content %}
-<!-- <!DOCTYPE html>
-
-
-<link rel="stylesheet" type="text/css" href="some_style.css">
-<style>
-div.center{
-  /* margin: 0 auto; */
-  position: absolute;
-  left:50%;
-  /* top: 50%; */
-}
-div.user {
-  position: relative;
-  left: 400px;
-  width:200px;
-}
-div.sound_btn {
-  position: relative;
-  left: 10px;
-  top: 50px;
-  width:200px;
-}
-
-div.user_input{
-  position: relative;
-  left: 20px;
-  top: 20px;
-  width:200px;
-}
-
-div.record_btn {
-  position: relative;
-  left: 100px;
-  top: 100px;
-  /* width:200px; */
-  /* border:5px solid #ee3e64; */
-}
-
-div.next{
-  position: relative;
-  left: 300px;
-  top: 150px;
-  /* width:100px; */
-}
-
-.next_btn {
-  transition-duration: 0.4s;
-}
-
-.next_btn:hover {
-  background-color: #4CAF50; /* Green */
-  color: white;
-}
-
-</style>
-
-  <div class="center">
-    <div class="user">
-      <img src="../pics/user.png">
-    </div>
-
-    <h2>Use Your Own Sentence</h2>
-    <div class="sound_btn">
-      <button><img src="../pics/speaker1.png" /></button>
-    </div>
-    <div class="user_input">
-      <input type="text" name="test" size="15" maxlength="50" placeholder="This is a sample sentence"/>
-    </div>
-
-    <div class="record_btn">
-      <button><img src="../pics/radio.png" /></button>
-    </div>
-
-    <div class="next">
-      <button class="next_btn">Next</button>
-    </div>
-
-  </div>
- -->

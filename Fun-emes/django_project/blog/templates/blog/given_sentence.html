@@ -2,31 +2,9 @@
 {% extends "blog/base.html" %}
 {% block content%}
 <style>
-/*.loader {
-  border: 16px solid #f3f3f3;
-  border-radius: 50%;
-  border-top: 16px solid #3498db;
-  width: 120px;
-  height: 120px;
-  -webkit-animation: spin 2s linear infinite;
-  animation: spin 2s linear infinite;
-}*/
-
-/* Safari */
-/*@-webkit-keyframes spin {
-  0% { -webkit-transform: rotate(0deg); }
-  100% { -webkit-transform: rotate(360deg); }
-}*/
-
-/*@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-*/
-
 /* Class-based styling */
-select {
-	width: 200px;
+.checked {
+  color: orange;
 }
 
 hr { 
@@ -39,9 +17,8 @@ hr {
 	border-width: 1px;
 } 
 
-
 input[type=text]{
-	width: 30%;
+	width: 20%;
 	padding: 6px 20px;
 	margin: 8px 0;
 	display: inline-block;
@@ -51,7 +28,7 @@ input[type=text]{
 }
 
 input[type=submit] {
-	width: 15%;
+	width: 10%;
 	background-color: #D3D3D3;
 	color: black;
 	padding: 6px 20px;
@@ -138,18 +115,6 @@ button:hover {
 	font-weight:normal;
 }
 
-/*#average {
-	display: block;
-	margin-left: auto;
-	margin-right: auto;
-}
-
-#recordButton {
-	display: block;
-	margin-left: auto;
-	margin-right: auto;
-}*/
-
 /* Popup container - can be anything you want */
 .popup {
   position: relative;
@@ -167,6 +132,7 @@ button:hover {
 .popup .popuptext {
   visibility: hidden;
   width: 160px;
+  height: 80px;
   background-color: #555;
   color: #fff;
   text-align: center;
@@ -174,7 +140,7 @@ button:hover {
   padding: 8px 0;
   position: absolute;
   z-index: 1;
-  bottom: 125%;
+  bottom: 175%;
   left: 50%;
   margin-left: -80px;
 }
@@ -209,7 +175,6 @@ button:hover {
   to {opacity:1 ;}
 }
 
-
 .rating {
   unicode-bidi: bidi-override;
   direction: rtl;
@@ -227,35 +192,31 @@ button:hover {
   font-size: 18px;
   width: 1.1em;
 }
+
 .rating > span:hover:before,
 .rating > span:hover ~ span:before {
    content: "\2605";
    position: absolute;
 }
 
-audio:hover, audio:focus, audio:active
-{
--webkit-box-shadow: 15px 15px 20px rgba(0,0, 0, 0.4);
--moz-box-shadow: 15px 15px 20px rgba(0,0, 0, 0.4);
-box-shadow: 15px 15px 20px rgba(0,0, 0, 0.4);
--webkit-transform: scale(1.05);
--moz-transform: scale(1.05);
-transform: scale(1.05);
+.audio_button {
+	background-color: #fafafa;
+	color: "blue";
+	cursor: pointer;
+	font-size: 12px;
 }
 
-audio
-{
--webkit-transition:all 0.5s linear;
--moz-transition:all 0.5s linear;
--o-transition:all 0.5s linear;
-transition:all 0.5s linear;
--moz-box-shadow: 2px 2px 4px 0px #006773;
--webkit-box-shadow:  2px 2px 4px 0px #006773;
-box-shadow: 2px 2px 4px 0px #006773;
--moz-border-radius:7px 7px 7px 7px ;
--webkit-border-radius:7px 7px 7px 7px ;
-border-radius:7px 7px 7px 7px ;
+.blinking_button {
+	animation-name: blinker;
+	animation-duration: 1s;
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+}
 
+@keyframes blinker {
+	0%{opacity: 1.0}
+	50%{opacity: 0.0}
+	100%{opacity: 1.0}
 }
 
 </style>
@@ -279,9 +240,6 @@ border-radius:7px 7px 7px 7px ;
 
 	// Generate Sentence Button
 	function GenerateSentence() {
-		clicks = JSON.parse("{{ clicks | escapejs }}");
-		clicks = parseInt(clicks);
-		console.log(clicks);
 
 		var occupationID = GetOccupation();
 		var scenarioID = GetScenario();
@@ -320,91 +278,17 @@ border-radius:7px 7px 7px 7px ;
 			sentence = "Sentence to be determined"
 		}
 
-		var IDs = { ID1: occupationID, ID2: scenarioID }; 
+		const IDs = [occupationID, scenarioID];
 
 		// update the input in the form so that it can be passed to python
 		document.getElementById("IDs").value = JSON.stringify(IDs);
 		document.getElementById("clicks").value = clicks;
 		document.getElementById("sentence").value = sentence;
-		sentence = sentence.split(" ");
-		// clears spans elements if there are any 
-		var list = document.getElementById('display');
-		while (list.hasChildNodes()) {  
-			list.removeChild(list.firstChild);
-		}
-
-		// add words to parent element one by one
-		for(var i=0; i<sentence.length;i++) {
-			if (i != sentence.length-1) {
-				sentence[i] += " ";
-			}
-			var newSpan = document.createElement('spans');
-			newSpan.textContent = sentence[i];
-			list.appendChild(newSpan);
-		}
-
-		document.getElementById("repeat").style.display = "block";
-		document.getElementById("record_button").style.display = "block";
-		document.getElementById("audio_prompt1").style.display = "block";
-		document.getElementById("sentence_audio").style.display = "block";
-		document.getElementById("audio_prompt2").style.display = "block";
-		document.getElementById("user_audio").style.display = "block";
-		document.getElementById("average").style.display = "none";
-		document.getElementById("resultPopUp").style.display = "none";
-		document.getElementById("evaluate_button").style.display = "none";;
-		document.getElementById("history_button").style.display = "none";
-
 	}
 
 	// Evaluate Button
 	function ScoreSentence() {
-		var score;
-		var ids = JSON.parse("{{ IDs | escapejs }}");
-		console.log(ids);
-
-		var occupationID = ids.ID1;
-		var scenarioID = ids.ID2;
-
-		clicks = JSON.parse("{{ clicks | escapejs }}");
-		console.log(clicks);
-
-		scores = JSON.parse("{{ scores | escapejs }}");
-		console.log(scores);
-
-
-		if (occupationID === "ID002" && scenarioID === "ID008") { 
-			// Middle School Student
-			sentence = "Do you want to go play basketball or soccer together?"
-		}
-		else if (occupationID === "ID001" && scenarioID === "ID008") {
-			// Elementary student
-			score = scores[4];
-		}
-		else if (occupationID === "ID003" && scenarioID === "ID008") {
-			// High School Student
-			if (clicks == 1) {
-				score = scores[1];
-			}
-			else if (clicks == 2) {
-				score = scores[0];
-			}
-			else if (clicks == 3){
-				score = scores[2];
-			}
-		}
-		else if (occupationID === "ID005" && scenarioID === "ID010") {
-			// Working employee
-			sentence = "This is a presentation to inform about how our project is applicable for certain aspects of company growth."
-		}
-		else if (occupationID === "ID005" && scenarioID === "ID013") {
-			// Middle-aged person needing medical assistance
-			score = scores[3];
-		}
-		else {
-			
-		}
-		console.log(score);
-		console.log(score.text);
+		const score = JSON.parse("{{ score | escapejs }}");
 		// process scored data passed from python
 		var spans = document.getElementById('display').childNodes;
 		// loop through the JSON words, color each word in the sentence by score
@@ -427,15 +311,17 @@ border-radius:7px 7px 7px 7px ;
 			total_score += score.words[i].score;
 		}
 
-		var avg_score = total_score / score.words.length;
-		average.innerText = Math.round(avg_score);
-		average.style.color = ChangeColor(avg_score);
+		// var avg_score = total_score / score.words.length;
+		average.innerText = Math.round(score.pronunciation);
+		average.style.color = ChangeColor(score.pronunciation);
 
 		// show toggle for extra information
 		document.getElementById("resultPopUp").style.display = "block";
 		var otherInfo = 'pronunciation: ';
-		var otherInfo = otherInfo.concat(score.pronunciation, '\n','fluency: ',score.fluency);
-		document.getElementById("otherInfo").textContent = otherInfo;	
+		var otherInfo = otherInfo.concat(Math.round(score.pronunciation), '\n', 'fluency: ', Math.round(score.fluency), '\t\n', 'integrity: ', Math.round(score.integrity));
+		document.getElementById("otherInfo").textContent = otherInfo;
+
+		document.getElementById("evaluate_button").style.backgroundColor = "#D3D3D3";
 	}
 
 	function ChangeColor(score) {
@@ -466,7 +352,7 @@ border-radius:7px 7px 7px 7px ;
 </select>
 <br/>
 <form>
-<input type="text" id="lname" name="lastname" placeholder="Add an occupation">
+<input type="text" placeholder="Other">
 <input type="submit" value="Submit">
 </form>
 <br/>
@@ -485,13 +371,20 @@ border-radius:7px 7px 7px 7px ;
 </select>
 <br/>
 <form>
-<input type="text" id="lname" name="lastname" placeholder="Add a scenario">
+<input type="text" placeholder="Other">
 <input type="submit" value="Submit">
 </form>
 
 <br/>
 <br/>
-<button class="sentence_btn" style="width:170px;height:30px;" onclick="GenerateSentence('clicked')">Generate Sentence</button>
+<form method="post">
+	{% csrf_token %}
+	<input type="hidden" id="clicks" name="clicks">
+	<input type="hidden" id="IDs" name="IDs">
+	<input type="hidden" name="recording" value="false">
+	<input type="hidden" id="sentence" name="text">
+	<button class="sentence_btn" style="width:170px;height:30px;" onclick="GenerateSentence()">Generate Sentence</button>
+</form>
 <br/>
 <br/>
 <br/>
@@ -505,10 +398,6 @@ border-radius:7px 7px 7px 7px ;
 		<p id='display' style="font-size: 26px;"></p>
 	</div>
 </div>
-<!-- 
-<br/>
-<br/>
-<button class="listen_btn" style="width:170px;height:30px;">Listen To Sentence</button> -->
 
 <br/>
 <br/>
@@ -517,31 +406,28 @@ border-radius:7px 7px 7px 7px ;
 	<div class="column" id="recordAndListen" style="width:33.33%;">
 			<form method="post">
 				{% csrf_token %}
-				<input type="hidden" id="clicks" name="clicks">
-				<input type="hidden" id="sentence" name="text">
-				<input type="hidden" id="IDs" name="IDs">
+				<input type="hidden" id="start" name="start">
+				<input type="hidden" id="sentence1" name="text">
+				<input type="hidden" id="clicks1" name="clicks">
+				<input type="hidden" name="recording" value="true">
 				<input type="hidden" name="record" >
-				<p id="audio_prompt1" style="display: none;">Listen to the sentence:</p>
+<!-- 				<p id="audio_prompt1" onclick="handleAudio1()" style="display: none;cursor: pointer; color: #4169E1; ">Not sure how to say it?</p>
 				<audio controls id="sentence_audio" src="{% static 'audio/sentence.mp3' %}" style="display:none;">
 				</audio>
 				<br/>
+				<p id="audio_prompt2" onclick="handleAudio2()" style="display: none;cursor: pointer; color: #4169E1;">Want to hear your audio?</p>
+				<audio scontrols id="user_audio" src="{% static 'audio/user.mp3' %}" style="display:none;">
+				</audio>
+				<br/> -->
+				<a href="{% static 'audio/sentence.mp3' %}" id="audio_prompt1" style="display:none;">Not sure how to say it?</a>
+				<br/>
+				<br/>
+				<a href="{% static 'audio/user.mp3' %}" id="audio_prompt2" style="display:none;">Want to hear your audio?</a>
+				<br/>
 				<button id="record_button" onclick="onRecord()" style="width:80px;height:30px;display:none;">Record</button>
 				<br/>
-				<p id="audio_prompt2" style="display: none;">Listen to Yourself:</p>
-				<audio controls id="user_audio" src="{% static 'audio/user.mp3' %}" style="display:none;">
-				</audio>
-				<br/>
-				<p>{{data}}</p>
 			</form>	
 	</div>
-<!-- 		<br/>
-		<br/>		
-		<button class="play_btn" style="width:170px;height:30px;">Play Your Audio</button>
-		<br/>
-		<br/>
-		<button class="record_btn" style="width:170px;height:30px;">Record Again</button>		
-		<br/>
-		<br/> -->
 	<div class="column" style="width:33.33%;">
 		<div class="lower_button" style="width:60px;height: 60px;display:block;">
 			<h2 id="average"></h2>
@@ -554,7 +440,7 @@ border-radius:7px 7px 7px 7px ;
 		</div>
 	</div>
 	<div class="column" style="width:33.33%;">
-		<button class="lower_button" id="evaluate_button" onclick="ScoreSentence()" style="width:170px;height:30px;">Evaluate</button>
+		<button class="lower_button" id="evaluate_button" onclick="ScoreSentence()" style="width:240px;height:30px; background-color: #3CB371;">Click For Your Score!</button>
 		<br/>
 		<br/>
 		<button class="lower_button" id="history_button" onclick="window.location.href = 'http://localhost:8000/fun-emes/profile/';" style="width:240px;height:30px;">Check Out Your History</button>
@@ -587,67 +473,19 @@ border-radius:7px 7px 7px 7px ;
 	<a href="{% url 'feedback' %}" style="">Write To Us</a>
 </div>
 
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
 <!-- <script type="text/javascript">
-	$(document).ready(function(){
-	// Check Radio-box
-	$(".rating input:radio").attr("checked", false);
+	$('body').on('click', '.audio', function() {
+    var sound = $("#sentence_audio");
 
-	$('.rating input').click(function () {
-		$(".rating span").removeClass('checked');
-		$(this).parent().addClass('checked');
-	});
+    sound.load();
+    sound.play();
 
-	$('input:radio').change(
-	  function(){
-		var userRating = this.value;
-		alert(userRating);
-	}); 
+    return false;
 });
-</script>
-<style>
-.rating {
-	float:left;
-	width:300px;
-}
-.rating span { float:right; position:relative; }
-.rating span input {
-	position:absolute;
-	top:0px;
-	left:0px;
-	opacity:0;
-}
-.rating span label {
-	display:inline-block;
-	width:30px;
-	height:30px;
-	text-align:center;
-	color:#FFF;
-	background:#ccc;
-	font-size:30px;
-	margin-right:2px;
-	line-height:30px;
-	border-radius:50%;
-	-webkit-border-radius:50%;
-}
-.rating span:hover ~ span label,
-.rating span:hover label,
-.rating span.checked label,
-.rating span.checked ~ span label {
-	background:#F90;
-	color:#FFF;
-}
-</style>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-<div class="rating">
-	<span><input type="radio" name="rating" id="str5" value="5"><label for="str5"></label></span>
-	<span><input type="radio" name="rating" id="str4" value="4"><label for="str4"></label></span>
-	<span><input type="radio" name="rating" id="str3" value="3"><label for="str3"></label></span>
-	<span><input type="radio" name="rating" id="str2" value="2"><label for="str2"></label></span>
-	<span><input type="radio" name="rating" id="str1" value="1"><label for="str1"></label></span>
-</div> -->
-
+</script> -->
 <script>
-// When the user clicks on div, open the popup
+
 function getOtherInfo() {
   var popup = document.getElementById("otherInfo");
   popup.classList.toggle("show");
@@ -665,46 +503,89 @@ function getPhonemes(parent_id) {
 }
 
 function getStars(id) {
+	const numStars = id.substring(4);
 	console.log(id.substring(4));
+	fillStars(numStars);
 }
 
 function onRecord() {
 	var button = document.getElementById("record_button");
-	button.style.backgroundColor = "lime";
+	button.style.backgroundColor = "#3CB371";
+	button.className = "blinking_button";
 }
+
+function fillStars(numStars) {
+	var stars = document.getElementById("stars").childNodes;
+	var spans = [];
+	for (var i=0; i < stars.length; i++) {
+		if (stars[i].tagName === "SPAN") {
+			spans.push(stars[i]);
+		}
+	}
+
+	for (var i=spans.length-1; i > spans.length-numStars-1;i--) {
+		spans[i].textContent = "★";
+	}
+}
+
+// function handleAudio1() {
+// 	document.getElementById("sentence_audio").style.display = "block";
+// }
+
+// function handleAudio2() {
+// 	document.getElementById("user_audio").style.display = "block";
+// }
+
 
 </script>
 <script>
-	var scores = JSON.parse("{{ scores | escapejs }}");
+	const score = JSON.parse("{{ score | escapejs }}");
+	if (score !== null) {
+		console.log(score);
+		showSentence(score.text);
+		document.getElementById("audio_prompt2").style.display = "block";
+		document.getElementById("evaluate_button").style.display = "block";
+		document.getElementById("history_button").style.display = "block";
+	}
 	var sentence = JSON.parse("{{ sentence | escapejs }}");
+	console.log(sentence);
 	if (sentence !== null) {
-			sentence = sentence.split(" ");
-			var list = document.getElementById('display');
-			while (list.hasChildNodes()) {  
-				list.removeChild(list.firstChild);
-			}
-
-			for(var i=0; i<sentence.length;i++) {
-				if (i != sentence.length-1) {
-					sentence[i] += " ";
-				}
-				var newSpan = document.createElement('span');
-				newSpan.textContent = sentence[i];
-				list.appendChild(newSpan);
-			}
-			document.getElementById("record_button").style.display = "block";
-			document.getElementById("audio_prompt1").style.display = "block";
-			document.getElementById("sentence_audio").style.display = "block";
-			document.getElementById("audio_prompt2").style.display = "block";
-			document.getElementById("user_audio").style.display = "block";
-			if (scores !== null) {
-				document.getElementById("evaluate_button").style.display = "block";
-				document.getElementById("history_button").style.display = "block";
-			}
+			showSentence(sentence);
+			document.getElementById("sentence1").value = sentence;
 		}
 		else {
 			console.log("no sentence");
 		}
+
+	function showSentence(sentence) {
+		sentence = sentence.split(" ");
+		var list = document.getElementById('display');
+		while (list.hasChildNodes()) {  
+			list.removeChild(list.firstChild);
+		}
+
+		for(var i=0; i<sentence.length;i++) {
+			if (i != sentence.length-1) {
+				sentence[i] += " ";
+			}
+			var newSpan = document.createElement('span');
+			newSpan.textContent = sentence[i];
+			list.appendChild(newSpan);
+		}
+		document.getElementById("record_button").style.display = "block";
+		document.getElementById("audio_prompt1").style.display = "block";
+	}
+
+	var clicks = JSON.parse("{{ clicks | escapejs }}");
+	clicks = parseInt(clicks);
+	document.getElementById("clicks1").value = clicks;
+
+	const IDs = JSON.parse("{{ IDs | escapejs }}");
+	if (IDs !== null) {
+		document.getElementById("environment").value = IDs[0];
+		document.getElementById("scenario").value = IDs[1];
+	}
+
 </script>
 
 
