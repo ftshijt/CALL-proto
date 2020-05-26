@@ -18,12 +18,6 @@ cuda version: 9010 \
 cudnn version: 7501
 
 
-## Main Directories and Functions
-django_env - python virutal environment for package organization
-django_project - main project folder
-
-The project is made from tutorial so the frontend functionalities do not exactly match what we will have later on. Layouts of pages are temporary.
-
 ## Environment Setup and Installations (Front-end)
 Runs on latest version of python (python3) and need pip to install needed packages so make sure that you have them on your machine
 
