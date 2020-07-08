@@ -4,99 +4,145 @@ from django.contrib.auth.forms import UserCreationForm
 # Create your views here.
 import os
 import json
-score_dict = None
-elementary = None
-highschool1 = None
-highschool2 = None
-highschool3 = None
-hospital = None
-score_dir = os.path.dirname((__file__))
-path = os.path.join(score_dir, "elementary.json")
-with open(path, 'r') as f:
-    elementary = json.load(f)
-    elementary = json.dumps(elementary)
-path = os.path.join(score_dir, "highschool1.json")
-with open(path, 'r') as f:
-    highschool1 = json.load(f)
-    highschool1 = json.dumps(highschool1)
-path = os.path.join(score_dir, "highschool2.json")
-with open(path, 'r') as f:
-    highschool2 = json.load(f)
-    highschool2 = json.dumps(highschool2)
-path = os.path.join(score_dir, "highschool3.json")
-with open(path, 'r') as f:
-    highschool3 = json.load(f)
-    highschool3 = json.dumps(highschool3)
-path = os.path.join(score_dir, "hospital.json")
-with open(path, 'r') as f:
-    hospital = json.load(f)
-    hospital = json.dumps(hospital)
-
+from gtts import gTTS
+from pydub import AudioSegment
+import speech_recognition as sr
 
 # initialize Score object
 # from callBackend import Score
 # Score_test = Score(args.lexiconaddr, args.phonesaddr, args.sr, args.kaldi_workspace, args.utt_id)
 
 def home(request):
-    return render(request, 'blog/home.html')
+	return render(request, 'blog/home.html')
 
 def register(request):
-    form = UserCreationForm()
-    return render(request, 'users/register.html', {'form':form})
+	form = UserCreationForm()
+	return render(request, 'users/register.html', {'form':form})
 
 def own_sentence(request):
-    return render(request, 'blog/own_sentence.html', {'title': 'Use Your Own Sentence'})
+	start = request.POST.get('start')
+	recording = request.POST.get('recording')
+	sentence = request.POST.get('text')
+	sentence_json = json.dumps(sentence)
+
+	curr_path = os.path.dirname((__file__))
+
+	if sentence != None and recording == "false":
+		# converts sentence into mp3, play on website
+		tts = gTTS(text=sentence, lang='en')
+		tts.save(curr_path+"/static/audio/sentence.mp3")
+
+	if start == None:
+		score = None
+		score = json.dumps(score)  
+
+	else:
+		# get audio from the microphone
+		r = sr.Recognizer()
+		with sr.Microphone() as source:
+			print("Speak:")
+			audio = r.listen(source)
+
+		# write audio as .wav file to local 
+		with open(curr_path+"/static/audio/user.wav","wb") as f:
+			f.write(audio.get_wav_data())
+
+		# convert wav to mp3 so web can play it
+		user_audio = AudioSegment.from_wav(curr_path+"/static/audio/user.wav")
+		user_audio.export(curr_path+"/static/audio/user.mp3", format="mp3")
+
+		###
+		score_dir = curr_path+"/data/score2.json"
+		with open(score_dir) as f:
+			score = json.load(f)
+		score = json.dumps(score)
+		###
+
+		#Backend
+		# lexiconaddr = '/home/nan/CALL-proto/res/lexicon.txt'
+		# phonesaddr = '/home/nan/CALL-proto/res/phone_map.txt'
+		# sr = 16000
+		# kaldi_workspace = '/home/nan/CALL-proto/backend/asr_train'
+		# utt_id = 1
+		# audio = '/home/nan/CALL-proto/Fun-emes/django_project/blog/static/audio/user.wav'
+		# text = sentence
+		# Score_test = Score(lexiconaddr, phonesaddr, sr, kaldi_workspace, utt_id)
+		# score_output = Score_test.CalcScores(audio, text)
+		# print (score_output)
+		# wav_id = PackZero(utt_id, 6)
+		# json.dump(score_output, open("/home/nan/CALL-proto/Fun-emes/django_project/test_score_wav%s.json"%wav_id, "w", encoding="utf-8"))
+
+	return render(request, 'blog/own_sentence.html', {'title': 'Use Your Own Sentence', 'sentence': sentence_json, 'score': score})
 
 def profile(request):
-    return render(request, 'blog/profile.html')
+	return render(request, 'blog/profile.html', {'title': 'Self Practice'})
 
 def feedback(request):
-    return render(request, 'blog/feedback.html')
+	return render(request, 'blog/feedback.html')
+
+def to_post(request):
+	return render(request, 'blog/to_post.html')
 
 def given_sentence(request):
-    data = request.POST.get('record')
-    sentence = request.POST.get('text')
-    sentence_json = json.dumps(sentence)
+	start = request.POST.get('start')
+	clicks = request.POST.get('clicks')
+	recording = request.POST.get('recording')
+	IDs = request.POST.get('IDs')
+	sentence = request.POST.get('text')
+	sentence_json = json.dumps(sentence)
 
-    import speech_recognition as sr
+	curr_path = os.path.dirname((__file__))
 
-    # get audio from the microphone
-    r = sr.Recognizer()
-    with sr.Microphone() as source:
-        r.adjust_for_ambient_noise(source)
-        print("Speak:")
-        # audio = r.listen(source)
+	if sentence != None and recording == "false":
+		# converts sentence into mp3, play on website
+		tts = gTTS(text=sentence, lang='en')
+		tts.save(curr_path+"/static/audio/sentence.mp3")
 
-    # try:
-    # with open("microphone-results.wav", "wb") as f:
-    #     f.write(audio.get_wav_data())  
-        # from scipy.io.wavfile import read
-        # import numpy as np
-        # a = read("microphone-results.wav") 
-        # audio_arr = np.array(a[1],dtype=float)
-        # print(audio_arr)
-        # text = "Hello how are you doing?"
-        # audio = "/Users/garyxian/Desktop/JHU/AI_systems/CALL-proto/Fun-emes/django_project/microphone-results.wav"
-        # score_output = Score_test.CalcScores(audio, text)
-        # wav_id = PackZero(args.utt_id, 6)`
-        # output = json.dumps(score_output, open("/Users/garyxian/Desktop/JHU/AI_systems/CALL-proto/Fun-emes/django_project/score_wav%s.json"%wav_id, "w", encoding="utf-8"))
+	if clicks == None:
+		clicks = 0
+		clicks = json.dumps(clicks)
 
-        # output = " " + r.recognize_google(audio)
-    # except sr.UnknownValueError:
-    #     output = "Could not understand audio"
-    # except sr.RequestError as e:
-    #     output = "Could not request results; {0}".format(e)
-    # data =output
+	if start == None:
+		score = None
+		score = json.dumps(score)  
 
-    # from gtts import gTTS
-    # import os
-    # tts = gTTS(text='beep boop', lang='en')
-    # tts.save("good.mp3")
-    # os.system("mpg321 good.mp3")
+	else:
+		# get audio from the microphone
+		r = sr.Recognizer()
+		with sr.Microphone() as source:
+			# r.adjust_for_ambient_noise(source)
+			print("Speak:")
+			audio = r.listen(source)
 
-    return render(request, 'blog/given_sentence.html', {'title': 'Say This Sentence', 'data':data, 'elementary': elementary, 'highschool1': highschool1, 'highschool2': highschool2, 'highschool3': highschool3, 'hospital' : hospital, 'sentence': sentence_json})
+		# write audio as .wav file to local 
+		with open(curr_path+"/static/audio/user.wav","wb") as f:
+			f.write(audio.get_wav_data())
 
-# def evaluate(request):
-#     # score the wav file
-#     # send the resulting JSON file to frontend
+		# convert wav to mp3 so web can play it
+		user_audio = AudioSegment.from_wav(curr_path+"/static/audio/user.wav")
+		user_audio.export(curr_path+"/static/audio/user.mp3", format="mp3")
+
+		###
+		score_dir = curr_path+"/data/score2.json"
+		with open(score_dir) as f:
+			score = json.load(f)
+		score = json.dumps(score)
+		###
+
+		#Backend
+		# lexiconaddr = '/home/nan/CALL-proto/res/lexicon.txt'
+		# phonesaddr = '/home/nan/CALL-proto/res/phone_map.txt'
+		# sr = 16000
+		# kaldi_workspace = '/home/nan/CALL-proto/backend/asr_train'
+		# utt_id = 1
+		# audio = '/home/nan/CALL-proto/Fun-emes/django_project/blog/static/audio/user.wav'
+		# text = sentence
+		# Score_test = Score(lexiconaddr, phonesaddr, sr, kaldi_workspace, utt_id)
+		# score_output = Score_test.CalcScores(audio, text)
+		# print (score_output)
+		# wav_id = PackZero(utt_id, 6)
+		# json.dump(score_output, open("/home/nan/CALL-proto/Fun-emes/django_project/test_score_wav%s.json"%wav_id, "w", encoding="utf-8"))   
+
+	return render(request, 'blog/given_sentence.html', {'title': 'Scenario Practice', 'score':score, 'sentence': sentence_json, 'clicks': clicks, 'IDs': IDs})
+
 
