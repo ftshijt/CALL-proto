@@ -11,6 +11,7 @@ import soundfile as sf
 from scipy.io import wavfile
 from kaldiio import load_ark
 
+SILENCE = 1
 
 def PackZero(integer, size):
     pack = size - len(str(integer))
@@ -184,10 +185,10 @@ class Score:
 
         return post_numpy
 
-    # dp with fixed silence
+    # dp with fixed silence which forces to assert silence between 2 phones
     def AlginFixedSilence(self, post_probs, template):
         # i phone in template; j feats position
-        # dp[i, j] = max(dp[i, j-1], dp[i -1, j-1])
+        # dp[i, j] = max(dp[i, j-1], dp[i-1, j-1])
         feats_size = len(post_probs)
         probs = np.array(post_probs)
         loss = np.zeros((len(template), feats_size))
@@ -229,7 +230,7 @@ class Score:
             feat_position -= 1
         return align_results[::-1]
 
-    # dp with optional silence
+    # dp with optional silence which has the option to skip the silence between 2 phones
     def AlginOptionalSilence(self, post_probs, template):
         # i phone in template; j feats position
         # dp[i, j] = max(dp[i, j-1], dp[i-1, j-1], dp[i-2, j-1])
@@ -241,8 +242,8 @@ class Score:
         for i in range(len(template)):
             loss[0][i] = probs[0][template[i] - 1]
 
+
         # measure the silence phone encountered
-        silences = 0
         for i in range(len(template)):
             for j in range(i, feats_size):
                 if j == 0:
@@ -254,14 +255,12 @@ class Score:
                     loss_go = loss[i - 1][j - 1] + probs[j][template[i] - 1]
                 # if previous phone is silence
                 # if the last phone of a word is the same as the first phone of its sub-sequent word, silence is fixed
-                if i > 1 and template[i - 1] == 1 and template[i - 2] != template[i]:
+                if i > 1 and template[i - 1] == SILENCE and template[i - 2] != template[i]:
                     loss_skip = loss[i - 2][j - 1] + probs[j][template[i] - 1]
 
                 losses = [loss_stay, loss_go, loss_skip]
                 loss[i][j] = max(losses)
                 path[i][j] = losses.index(loss[i][j])
-            if template[i] == 1:
-                silences += 1
 
         template_position = len(template) - 1
         feat_position = feats_size - 1
@@ -304,6 +303,8 @@ class Score:
         e_x = np.exp(x - np.max(x))
         return e_x / e_x.sum()
 
+    # inputs are the prob matrix and the id of the phone need to be read
+    # outputs are the pronoun score and the id of the phone actually read
     def PScore_GOP(self, prob_segment, phone_id):
         prob_segment_log = np.log(np.array(prob_segment))
         prob_segment_logSum = np.sum(prob_segment_log, axis=0)
@@ -318,6 +319,8 @@ class Score:
         target_result = round(sum(target_result) / len(target_result), 4)
         return target_result, phone_read
 
+    # inputs are the prob matrix and the id of the phone need to be read
+    # outputs are the pronoun score and the id of the phone actually read
     def PScore_sGOP(self, prob_segment, phone_id):
         prob_segment_log = np.log(np.array(prob_segment))
         prob_segment_logSum = np.sum(prob_segment_log, axis=0)
@@ -344,6 +347,8 @@ class Score:
         target_result = round(sum(target_result) / len(target_result), 4)
         return target_result, phone_read
 
+    # inputs are the prob matrix and the id of the phone need to be read
+    # outputs are the pronoun score and the id of the phone actually read
     def PScore_TAGOP(self, prob_segment, phone_id):
         prob_segment_log = np.log(np.array(prob_segment))
         prob_segment_logSum = np.sum(prob_segment_log, axis=0)
@@ -385,9 +390,10 @@ class Score:
         target_result = round(sum(target_result), 4)
         return target_result, phone_read
 
+    # outputs are the pronoun score and the id of the phone actually read
     def PScore_pGOP(
         self, prob_segment, phone_id, idx_1, idx_2, beta
-    ):  # with only pGOP w/o TAGOP
+    ):  # with only Duration Factor w/o Transition Factor
         prob_segment_log = np.log(np.array(prob_segment))
         prob_segment_logSum = np.sum(prob_segment_log, axis=0)
         phone_read = np.argmax(prob_segment_logSum) + 1
@@ -415,6 +421,7 @@ class Score:
             p_score = 0
         return p_score, phone_read
 
+    # outputs are the pronoun score and the id of the phone actually read
     def PScore_CaGOP(self, prob_segment, phone_id, idx_1, idx_2, beta):
         prob_segment_log = np.log(np.array(prob_segment))
         prob_segment_logSum = np.sum(prob_segment_log, axis=0)
@@ -485,6 +492,11 @@ class Score:
 
         return fluency
 
+    # input parameters introduction:
+    # 'audio' is the address of the audio
+    # 'text' is the corresponding text (not address!)
+    # 'method_name' is the method to use in pronoun score (i.e. GOP, sGOP, TAGOP, pGOP, CaGOP)
+    # 'beta' is one paremeter needed in duration factor calculation
     def CalcScores(self, audio, text, method_name, read_idx, beta):
         post_probs = self.KaldiInfer(audio)
         t2p = self.Text2Phone(text)
